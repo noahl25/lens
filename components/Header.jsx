@@ -23,10 +23,10 @@ export default function Header() {
                     <img src="eth.png" width={30} height={30} className="relative translate-y-[2.5px]"></img>
                     <p className="text-white text-2xl font-semibold relative -translate-x-[3px]">ethbet</p>
                 </div>
-                <div ref={containerRef} className="ml-auto w-[500px] mr-[20] overflow-hidden flex flex-row gap-2 bg-black">
+                <div ref={containerRef} className="ml-auto w-[500px] mr-[20] overflow-hidden flex flex-row gap-2 bg-black relative">
 
                     <motion.div 
-                        className="flex gap-2 w-[200%]"
+                        className="flex gap-2 w-[200%] relative"
                         animate={{
                             x: [0, -width],
                             transition: {
@@ -40,6 +40,7 @@ export default function Header() {
                             }
                         }}
                     >
+
                         {
                             [...Array(2)].map((_, i) => (
                                 <div key={i} className="flex gap-2">
@@ -55,7 +56,10 @@ export default function Header() {
                                 </div>
                             ))
                         }
+
                     </motion.div>
+
+                    <div className="absolute inset-0 z-10 bg-radial-[at_50%_50%] from-transparent to-black pointer-events-none to-90%"></div>
 
                 </div>
             </div>
