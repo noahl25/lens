@@ -8,7 +8,7 @@ export default function Home() {
 			<div className="w-screen h-screen flex justify-center items-center bg-black relative bg-carbon">
 				<Threads
 					amplitude={1}
-					distance={0}
+					distance={0.6}
 					enableMouseInteraction={false}
 					className="absolute inset-0"
 				/>
