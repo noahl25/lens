@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Threads from "@/components/Threads";
+import Query from "@/components/Query";
 
 export default function Home() {
 	return (
@@ -12,6 +13,7 @@ export default function Home() {
 					enableMouseInteraction={false}
 					className="absolute inset-0"
 				/>
+				<Query/>
 			</div>
 		</>
 	);

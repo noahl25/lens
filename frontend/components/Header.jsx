@@ -11,7 +11,7 @@ export default function Header() {
 
     useEffect(() => {
         if (containerRef.current) {
-            setWidth(containerRef.current.scrollWidth / 2);
+            setWidth(containerRef.current.scrollWidth / 2 + 3);
         }
     }, []);
 
@@ -19,11 +19,11 @@ export default function Header() {
         <div className="absolute top-0 left-0 w-screen z-10 p-3">
             
             <div className="flex flex-row items-center mt-1">
-                <div className="flex flex-row items-center">
-                    <img src="eth.png" width={30} height={30} className="relative translate-y-[2.5px]"></img>
-                    <p className="text-white text-2xl font-semibold relative -translate-x-[3px]">ethbet</p>
+                <div className="flex flex-row items-center relative translate-y-[2px]">
+                    <img src="eth.png" width={30} height={30} className="relative"></img>
+                    <p className="text-white text-2xl font-bold relative -translate-x-[3px] -translate-y-[1px]">lens</p>
                 </div>
-                <div ref={containerRef} className="ml-auto w-[500px] mr-[20] overflow-hidden flex flex-row gap-2 bg-black relative">
+                <div ref={containerRef} className="ml-auto w-[500px] mr-[20] overflow-hidden flex flex-row gap-2 bg-black relative opacity-0 md:opacity-100 transition-all duration-500">
 
                     <motion.div 
                         className="flex gap-2 w-[200%] relative"
@@ -34,8 +34,7 @@ export default function Header() {
                                     duration: 15,
                                     ease: "linear",
                                     repeat: Infinity,
-                                    repeatType: "loop",
-                                    repeatDelay: 0
+                                    repeatType: "loop"
                                 }
                             }
                         }}
@@ -49,8 +48,8 @@ export default function Header() {
                                             key={`${i}-${key}`}
                                             className="bg-black text-white uppercase whitespace-nowrap flex flex-row items-center gap-2"
                                         >
-                                            <p className="blur-[2px] hover:blur-[0px] transition-all ease-in-out duration-500 text-neutral-400 font-bold">0{key} {str}</p>
-                                            <p className="blur-[2px] relative -translate-y-[1px]">//</p>
+                                            <p className="blur-[1.5px] hover:blur-[0px] transition-all ease-in-out duration-500 text-neutral-350 font-semibold">0{key} {str}</p>
+                                            <p className="blur-[1.5px] relative -translate-y-[1px]">//</p>
                                         </div>
                                     ))}
                                 </div>
