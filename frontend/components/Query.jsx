@@ -1,8 +1,9 @@
 'use client'
 
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import TypewriterTextComponent from "./Typewriter";
+import { useRouter } from "next/navigation";
 
 export default function Query() {
 
@@ -15,6 +16,15 @@ export default function Query() {
         "Show me trending topics about $BTC on Twitter and Reddit.",
     ]
 
+    const router = useRouter();
+    const inputRef = useRef();
+
+    const onSubmit = () => {
+
+        router.push(`/dashboard?query=${inputRef.current.value.replaceAll(" ", "_")}`)
+
+    }
+
     return (
         <>
             <div className="rounded-4xl p-10 bg-transparent whitespace-nowrap overflow-hidden text-[70px] text-white z-5">
@@ -25,10 +35,10 @@ export default function Query() {
 
                 <div className="w-120% h-12 mt-5 rounded-4xl backdrop-blur-md border-1 border-white/20 relative flex">
                     <TypewriterTextComponent examples={examples} showExamples={showExamples} exampleIndex={exampleIndex} setExampleIndex={setExampleIndex}/>
-                    <input type="text" className="text-sm ml-12 mr-4 focus:outline-none w-full" onClick={() => { setShowExamples(false); }} onBlur={() => { setShowExamples(true); }}></input>
+                    <input type="text" ref={inputRef} className="text-sm ml-12 mr-4 focus:outline-none w-full" onKeyDown={(e) => e.key === "Enter" && onSubmit()} onClick={() => { setShowExamples(false); }} onBlur={() => { setShowExamples(true); }}></input>
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2" color="#ffffff58"/>
                 </div>
-
+                <p className="text-xs text-white/60 mt-2 text-center">Press Enter to search</p>
             </div>
         </>
     );

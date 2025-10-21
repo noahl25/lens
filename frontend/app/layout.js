@@ -1,5 +1,6 @@
 import { Megrim } from "next/font/google";
-import { Inter } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
+import Header from "@/components/Header";
 import "./globals.css";
 
 export const megrim = Megrim({
@@ -8,12 +9,12 @@ export const megrim = Megrim({
   weight: ["400"]
 });
 
-export const inter = Inter({
-  variable: "--font-inter",
+export const fontBasic = Geist_Mono({
+  variable: "--font-basic",
   subsets: ["latin"]
 })
 
-export const metadata = {
+const metadata = {
   title: "lens",
   description: "",
 };
@@ -22,8 +23,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${megrim.className} antialiased`}
+        className={`${megrim.className} antialiased bg-black`}
       >
+        <Header />
         {children}
       </body>
     </html>
