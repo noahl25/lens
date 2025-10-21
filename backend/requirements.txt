@@ -1,3 +1,9 @@
 uvicorn
 fastapi
 python-dotenv
+openai
+langchain
+langchain-core
+langgraph
+requests
+praw

@@ -13,10 +13,9 @@ export default function Query({ setQuery }) {
     const examples = [
         "How has sentiment on $ADA changed over the last 7 days?",
         "Is Solana seeing more transactions than last week?",
-        "Show me trending topics about $BTC on Twitter and Reddit.",
+        "Show me trending topics about $BTC.",
     ]
 
-    const router = useRouter();
     const inputRef = useRef();
 
     const onSubmit = () => {
@@ -30,7 +29,7 @@ export default function Query({ setQuery }) {
             <div className="rounded-4xl p-10 bg-transparent whitespace-nowrap overflow-hidden text-[70px] text-white z-5">
                 <div className="text-center" style={{ lineHeight: 1 }}>
                     <p className="text-[200px] text-white">LENS</p>
-                    <p className="text-[20px] text-neutral-200 font-thin">Explore real-time blockchain sentiment and analysis.</p>
+                    <p className="text-[20px] text-neutral-200 font-thin">Explore AI-powered real-time blockchain sentiment and analysis.</p>
                 </div>
 
                 <div className="w-120% h-12 mt-5 rounded-4xl backdrop-blur-md border-1 border-white/20 relative flex">
