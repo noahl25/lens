@@ -7,3 +7,4 @@ langchain-core
 langgraph
 requests
 praw
+google-genai

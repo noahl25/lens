@@ -7,14 +7,14 @@ from openai import OpenAI
 import os
 
 from operator import add as add_messages
-from typing import List, Annotated, TypedDict
+from typing import List, Annotated, TypedDict, Any
 
 load_dotenv()
 
 class AgentState(TypedDict):
     messages: Annotated[List, add_messages]
 
-def asi_request(messages: List, model: str = "asi1-extended", temperature: float = 0.1, max_tokens: int = 2000):
+def asi_request(messages: List, model: str = "asi1-extended", temperature: float = 0.1, max_tokens: int = 2000, tool: Any | None = None):
 
     client = OpenAI(
         api_key=os.getenv("ASIONE_KEY"),
@@ -25,7 +25,8 @@ def asi_request(messages: List, model: str = "asi1-extended", temperature: float
         model=model,
         messages=messages,
         temperature=temperature,
-        max_tokens=max_tokens
+        max_tokens=max_tokens,
+        tools=[tool] if tool else [],
     )
     
     return response

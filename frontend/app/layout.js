@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${megrim.className} antialiased`}
+        className={`${megrim.className} antialiased bg-black`}
       >
         <Header />
         {children}
