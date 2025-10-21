@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import TypewriterTextComponent from "./Typewriter";
 import { useRouter } from "next/navigation";
 
-export default function Query() {
+export default function Query({ setQuery }) {
 
     const [showExamples, setShowExamples] = useState(true);
     const [exampleIndex, setExampleIndex] = useState(0);
@@ -21,7 +21,7 @@ export default function Query() {
 
     const onSubmit = () => {
 
-        router.push(`/dashboard?query=${inputRef.current.value.replaceAll(" ", "_")}`)
+        setQuery(inputRef.current.value.trim());
 
     }
 

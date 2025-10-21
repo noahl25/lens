@@ -2,13 +2,10 @@
 
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { fontBasic } from "../layout";
+import { fontBasic } from "@/app/layout";
 import { Search } from "lucide-react";
 
-export default function Dashboard() {
-
-    const query = useSearchParams().get("query");
-    const router = useRouter();
+export default function Dashboard({ query }) {
 
     return (
         <div className="w-full h-full">
@@ -20,10 +17,10 @@ export default function Dashboard() {
                     </div>
                     <div>
                         <div className="w-[500px] h-12 rounded-4xl backdrop-blur-md border-2 border-white/50 relative flex">
-                            <input placeholder={query.replaceAll("_", " ")} type="text" className="text-sm ml-12 mr-4 focus:outline-none w-full"></input>
+                            <input placeholder={query} type="text" className="text-sm ml-12 mr-4 focus:outline-none w-full"></input>
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2" color="#ffffff74" />
                         </div>
-                        <p className="text-xs text-white/60 mt-2">Press Enter to search.</p>
+                        <p className="text-xs text-center text-white/60 mt-2">Press Enter to search.</p>
                     </div>
                 </div>
             </div>
