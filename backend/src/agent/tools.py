@@ -1,6 +1,6 @@
 from collections.abc import Callable
 import inspect
-from typing import get_args, get_type_hints, Annotated
+from typing import get_args, get_type_hints, Annotated, cast, Literal
 import os
 import requests
 from dotenv import load_dotenv
@@ -8,11 +8,13 @@ import praw
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from pydantic import BaseModel, Field
 from openai import pydantic_function_tool
-from PIL import Image
-from io import BytesIO
 from google import genai
 from google.genai import types
+from datetime import datetime
+import json
+from tavily import TavilyClient
 
+from prompts import IMAGE_SENTIMENT_PROMPT
 
 load_dotenv()
 
@@ -64,10 +66,9 @@ def fear_and_greed_index(limit: Annotated[int, "Days in past of greed/fear to ge
     """ Gets fear and greed index for a specified timespan. """
 
     url = "https://pro-api.coinmarketcap.com/v3/fear-and-greed/historical"
-    api_key = os.getenv("COINMARKETCAP_KEY")
     
     headers = {
-        "X-CMC_PRO_API_KEY": api_key
+        "X-CMC_PRO_API_KEY": os.getenv("COINMARKETCAP_KEY")
     }
     
     params = {
@@ -95,16 +96,30 @@ def social_sentiment(time_period: Annotated[str, "Time period to get posts from.
                 subreddit = search_sub
 
     posts = []
-    for post in subreddit.top(limit=20, time_filter=time_period):
-        if post.is_self and len(post.selftext) > 50:
+    for post in subreddit.top(limit=5, time_filter=time_period):
+        if post.is_self:
             posts.append({
                 "title": post.title,
-                "body": post.selftext
+                "body": post.selftext,
+                "date": float(post.created_utc),
+                "datestr": datetime.fromtimestamp(post.created_utc).strftime("%d-%m-%Y"),
+                "type": "text"
             })
         elif post.url.endswith((".jpg", ".png", ".jpeg")):
             posts.append({
                 "title": post.title,
-                "url": post.url
+                "url": post.url,
+                "date": float(post.created_utc),
+                "datestr": datetime.fromtimestamp(post.created_utc).strftime("%d-%m-%Y"),
+                "type": "image"
+            })
+        else:
+            posts.append({
+                "title": post.title,
+                "body": "",
+                "date": float(post.created_utc),
+                "datestr": datetime.fromtimestamp(post.created_utc).strftime("%m/%d/%Y"),
+                "type": "title"
             })
 
     class Sentiment(BaseModel):
@@ -113,22 +128,54 @@ def social_sentiment(time_period: Annotated[str, "Time period to get posts from.
     # VADER analyzer for text and google genai for images.
     analyzer = SentimentIntensityAnalyzer()
     client = genai.Client(api_key=os.getenv("GOOGLE_KEY"))
-    
-    #score = analyzer.polarity_scores(text)
-    # image_path = "https://i.redd.it/tt4aevxlg2wf1.jpeg"
-    # image_bytes = requests.get(image_path).content
-    # image = types.Part.from_bytes(
-    # data=image_bytes, mime_type="image/jpeg"
-    # )
 
-    # client = genai.Client(api_key=os.getenv("GOOGLE_KEY"))
-    # response = client.models.generate_content(
-    #     model="gemini-2.5-flash",
-    #     contents=["Give a number from -1 to 1 where -1 is extremely negative sentiment, 0 is netural, and 1 is extremely positive sentiment.", image],
-    #     config={
-    #         "response_mime_type": "application/json",
-    #         "response_schema": Sentiment
-    #     }
-    # )
-    #response.text["sentiment"]
+    results = []
+    for post in posts:
+        if post["type"] == "text" or post["type"] == "title":
+            score = analyzer.polarity_scores(f"{post["title"]} {post["body"]}")
+            results.append({
+                "score": score["compound"],
+                "date": post["date"],
+                "datestr": post["datestr"]
+            })
+        elif post["type"] == "image":
+            image_path = post["url"]
+            image_bytes = requests.get(image_path).content
+            image = types.Part.from_bytes(
+                data=image_bytes, mime_type=f"image/{image_path.split(".")[-1]}"
+            )
+
+            client = genai.Client(api_key=os.getenv("GOOGLE_KEY"))
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=[IMAGE_SENTIMENT_PROMPT + post["title"], image],
+                config={
+                    "response_mime_type": "application/json",
+                    "response_schema": Sentiment
+                }
+            )
+            
+            if response and response.text:
+                score = json.loads(response.text)["sentiment"]
+                results.append({
+                    "score": score,
+                    "date": post["date"],
+                    "datestr": post["datestr"]
+                })
+
+    results = sorted(results, key=lambda item: item["date"])
+    results.append({
+        "average_sentiment": sum([item["score"] for item in results]) / len(results)
+    })
+
+    return results
+
+def web_search(time_period: Annotated[str, "Time period to search. Must be \"day\", \"week\", \"month\", or \"year\""], query: Annotated[str, "Query to search."]):
+
+    if time_period not in ["day", "week", "month", "year"]:
+        raise ValueError("time_period must be one of: day, week, month, year")
+
+    tavily_client = TavilyClient(api_key=os.getenv("TAVILY_KEY"))
+    response = tavily_client.search(query, topic="news", time_range=cast(Literal['day', 'week', 'month', 'year'], time_period))
+    return response["results"]
 
