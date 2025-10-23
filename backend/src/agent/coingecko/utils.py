@@ -14,6 +14,6 @@ def coingecko_request(endpoint: str):
 def get_id(query: str):
     result = coingecko_request(f"/search?query={query}")
     if len(result) > 0:
-        return result[0]["id"]
+        return result["coins"][0]["id"]
     else:
         raise RuntimeError("Query returns no results.")

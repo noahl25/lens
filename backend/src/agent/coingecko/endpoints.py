@@ -1,12 +1,30 @@
 from typing import Annotated
-from utils import coingecko_request
+from .utils import coingecko_request, get_id
+import datetime
 
-def coin_market_data(coin_id: Annotated[str, "Fully qualified name of coin. E.g. 'bitcoin' or 'ethereum'."]):
-    """ Gets various data about coin. E.g. High 24hr, Low 24hr, Price Change 24hr."""
-    return coingecko_request(f"/coins/markets?vs_currency=usd&ids={coin_id}")
+def coin_market_data(coin_id: Annotated[str, "Fully qualified name of coin. E.g. 'bitcoin' or 'ethereum'. If unknown, pass coin name directly from user query."]):
+    """
+    Get the current market snapshot for a coin — includes live price,
+    24h performance, market cap, supply, and other real-time metrics.
+    This is best for general data. Use alongside historical_data for best metrics.
+    """
+    return coingecko_request(f"/coins/markets?vs_currency=usd&ids={get_id(coin_id)}")
 
-def historical_data(coin_id: Annotated[str, "Fully qualified name of coin. E.g. 'bitcoin' or 'ethereum'."], days: Annotated[int, "Days in past to get data from."]):
-    """ Gets price, volume, and market cap for specified number of days. """
-    return coingecko_request(f"/coins/{coin_id}/market_chart?days={days}&vs_currency=usd")
+def historical_data(coin_id: Annotated[str, "Fully qualified name of coin. E.g. 'bitcoin' or 'ethereum'. If unknown, pass coin name directly from user query."], days: Annotated[int, "Days in past to get data from."]):
+    """
+    Get historical time-series data for a coin — including prices, volume,
+    and market cap across a time range. Data is suitable for charts and
+    trend analysis.
 
-print(coin_market_data("bitcoin"))
+    Use this when the user mentions:
+      - historical prices (day/week/month/year)
+      - chart data
+      - trend or volatility insights
+      - 'how has price moved over time?'
+    
+    This is best for data.
+    """
+    response = coingecko_request(f"/coins/{get_id(coin_id)}/market_chart?days={days}&vs_currency=usd")
+    for x in ["prices", "market_caps", "total_volumes"]:
+        for point in response[x]:
+            point[0] = datetime.datetime.fromtimestamp(point[0], tz=datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S")

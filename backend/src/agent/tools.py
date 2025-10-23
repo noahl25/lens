@@ -17,7 +17,6 @@ import aiohttp
 import asyncio
 from collections import defaultdict
 
-from agent import asi_request
 from prompts import IMAGE_SENTIMENT_PROMPT
 
 load_dotenv()
@@ -185,34 +184,38 @@ async def social_sentiment(time_period: str, coin: str = ""):
     results = []
     image_tasks = []
     async with aiohttp.ClientSession() as session:
-        for post in posts:
-            if post["type"] == "text" or post["type"] == "title":
-                score = analyzer.polarity_scores(f"{post['title']} {post['body']}")
-                results.append({
-                    "score": score["compound"],
-                    "date": post["date"],
-                    "datestr": post["datestr"]
-                })
-            elif post["type"] == "image":
-                image_tasks.append(
-                    analyze_image_sentiment(session, client, post)
-                )
-        image_results = await asyncio.gather(*image_tasks)
+        try:
+            for post in posts:
+                if post["type"] == "text" or post["type"] == "title":
+                    score = analyzer.polarity_scores(f"{post['title']} {post['body']}")
+                    results.append({
+                        "sentiment_score": score["compound"],
+                        "date": post["date"],
+                        "datestr": post["datestr"],
+                        "body": post["body"]
+                    })
+                elif post["type"] == "image":
+                    image_tasks.append(
+                        analyze_image_sentiment(session, client, post)
+                    )
+            image_results = await asyncio.gather(*image_tasks)
+        except Exception as e:
+            print(e)
 
     results.extend(image_results)
     results = sorted(results, key=lambda item: item["date"])
 
     daily_scores = defaultdict(list)
     for item in results:
-        if "score" in item:
-            daily_scores[item["datestr"]].append(item["score"])
+        if "sentiment_score" in item:
+            daily_scores[item["datestr"]].append(item["sentiment_score"])
 
     daily_averages = [
         {"datestr": date, "average_sentiment": sum(scores)/len(scores)}
         for date, scores in daily_scores.items()
     ]
 
-    overall_avg = sum([item["score"] for item in results if "score" in item]) / len([item for item in results if "score" in item])
+    overall_avg = sum([item["sentiment_score"] for item in results if "sentiment_score" in item]) / len([item for item in results if "sentiment_score" in item])
 
     results.append({
         "average_sentiments": {
@@ -228,11 +231,11 @@ def social_sentiment_tool(time_period: Annotated[str, "Time period to get posts 
     return asyncio.run(social_sentiment(time_period, coin))
 
 def get_top_reddit_tool(time_period: Annotated[str, "Time period to get posts from. Must be \"day\", \"week\", or \"month\""], coin: Annotated[str, "Coin to get posts from."] = ""):
-    """ Gets top posts from reddit for a coin in a specified range. """
+    """ Gets top posts from reddit for a coin in a specified range. Good for getting news and the latest. Best for when wanting more personal and casual news."""
     return asyncio.run(get_top_reddit(time_period, coin, image_descriptions=True))
 
 def web_search(time_period: Annotated[str, "Time period to search. Must be \"day\", \"week\", \"month\", or \"year\""], query: Annotated[str, "Query to search."]):
-    """ Searches for relevant articles and data based on the query. """
+    """ Searches for relevant articles and data based on the query. Good for news and recent information. Call alongside get_top_reddit_tool for most well-rounded news, if needed. """
     if time_period not in ["day", "week", "month", "year"]:
         raise ValueError("time_period must be one of: day, week, month, year")
 
@@ -254,3 +257,5 @@ TOOLS_REF = [
 TOOLS_FORMATTED = [
     create_tool_schema(func) for func in TOOLS_REF
 ]
+
+TOOLS_DICT = {func.__name__: func for func in TOOLS_REF}
