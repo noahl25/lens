@@ -45,5 +45,18 @@ def llm(state: AgentState):
 def tool_node(state: AgentState):
     pass
 
+def has_tools(state: AgentState):
+    """ Conditional edge. """
+
+    pass
+
+def metta_analysis(state: AgentState):
+
+    pass
+
+def summarize(state: AgentState):
+    """ Summarize all data. """
+    pass
+
 def create_dashboard(state: AgentState):
     pass

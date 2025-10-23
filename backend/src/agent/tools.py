@@ -18,21 +18,12 @@ import asyncio
 from collections import defaultdict
 
 from agent import asi_request
-from prompts import IMAGE_SENTIMENT_PROMPT, COINGECKO_DOC_SELECTOR_PROMPT, COINGECKO_ENDPOINT_SELECTOR_PROMPT
+from prompts import IMAGE_SENTIMENT_PROMPT
 
 load_dotenv()
 
-class Sentiment(BaseModel):
-    sentiment: float = Field(..., description='Number between -1 and 1. -1 Means extremely negative sentiment. 1 means extremely positive sentiment. 0 is netural.')
-
-sentiment_tool = pydantic_function_tool(
-    Sentiment,
-    name="sentiment",
-    description="Detect whether an image has a positive or negative sentiment."
-)
-
 def create_tool_schema(func: Callable):
-    """ Creates schema for simple functions without json/pydict parameters. """
+    """ Creates schema for simple functions without json parameters. """
 
     params = {
         "type": "object",
@@ -196,7 +187,7 @@ async def social_sentiment(time_period: str, coin: str = ""):
     async with aiohttp.ClientSession() as session:
         for post in posts:
             if post["type"] == "text" or post["type"] == "title":
-                score = analyzer.polarity_scores(f"{post["title"]} {post["body"]}")
+                score = analyzer.polarity_scores(f"{post['title']} {post['body']}")
                 results.append({
                     "score": score["compound"],
                     "date": post["date"],
@@ -233,13 +224,15 @@ async def social_sentiment(time_period: str, coin: str = ""):
     return results
 
 def social_sentiment_tool(time_period: Annotated[str, "Time period to get posts from. Must be \"day\", \"week\", or \"month\""], coin: Annotated[str, "Coin to check sentiment on. Blank for checking whole market sentiment."] = ""):
+    """ Gets social sentiment of a coin in a specified range. """
     return asyncio.run(social_sentiment(time_period, coin))
 
 def get_top_reddit_tool(time_period: Annotated[str, "Time period to get posts from. Must be \"day\", \"week\", or \"month\""], coin: Annotated[str, "Coin to get posts from."] = ""):
+    """ Gets top posts from reddit for a coin in a specified range. """
     return asyncio.run(get_top_reddit(time_period, coin, image_descriptions=True))
 
 def web_search(time_period: Annotated[str, "Time period to search. Must be \"day\", \"week\", \"month\", or \"year\""], query: Annotated[str, "Query to search."]):
-
+    """ Searches for relevant articles and data based on the query. """
     if time_period not in ["day", "week", "month", "year"]:
         raise ValueError("time_period must be one of: day, week, month, year")
 
@@ -247,51 +240,17 @@ def web_search(time_period: Annotated[str, "Time period to search. Must be \"day
     response = tavily_client.search(query, topic="news", time_range=cast(Literal['day', 'week', 'month', 'year'], time_period), max_results=10)
     return response["results"]
 
-def market_data_request(query: Annotated[str, "Request market data using natural language."]):
+import coingecko.endpoints
+coingecko_functions = inspect.getmembers(coingecko.endpoints, inspect.isfunction)
 
-    class Link(BaseModel):
-        link: str
+TOOLS_REF = [
+    social_sentiment_tool,
+    get_top_reddit_tool,
+    web_search,
+    fear_and_greed_index,
+    *[func for _, func in coingecko_functions if func.__module__ == coingecko.endpoints.__name__]
+]
 
-    try:
-        result = asi_request(
-            [
-                {"role": "system", "content": COINGECKO_DOC_SELECTOR_PROMPT + requests.get("https://docs.coingecko.com/llms.txt").text},
-                {"role": "user", "content": query}
-            ],
-            max_tokens=10000,
-            tools=[pydantic_function_tool(Link, name="link")],
-            using_structured_output=True
-        )
-
-        if result.choices[0].message.tool_calls:
-            link = json.loads(result.choices[0].message.tool_calls[0].function.arguments)["link"] # type: ignore
-        else:
-            link = result.choices[0].message.content
-
-        if not link:
-            return "failed"
-
-        result = asi_request(
-            [
-                {"role": "system", "content": COINGECKO_ENDPOINT_SELECTOR_PROMPT + requests.get(link).text},
-                {"role": "user", "content": query}
-            ],
-            max_tokens=10000,
-            tools=[pydantic_function_tool(Link, name="link")],
-            using_structured_output=True
-        )
-
-        if result.choices[0].message.tool_calls:
-            endpoint = json.loads(result.choices[0].message.tool_calls[0].function.arguments)["link"] # type: ignore
-        else:
-            endpoint = result.choices[0].message.content
-
-        if endpoint:
-            endpoint = endpoint.replace("pro-", "")
-            endpoint = endpoint.replace("x_cg_pro_api_key", "x_cg_demo_api_key")
-            endpoint = endpoint.replace("API_KEY", os.getenv("COINGECKO_KEY") or "")
-
-    except Exception:
-        return "failed"
-
-market_data_request("btc price past 24 hours")
+TOOLS_FORMATTED = [
+    create_tool_schema(func) for func in TOOLS_REF
+]
