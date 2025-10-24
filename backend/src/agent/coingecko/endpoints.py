@@ -31,6 +31,7 @@ def historical_data(coin_id: Annotated[str, "Fully qualified name of coin. E.g. 
                 point[0] / 1000, 
                 tz=datetime.timezone.utc
             ).strftime("%Y-%m-%d %H:%M:%S")
+            point[1] = str(point[1])
 
     if metric != "":
         response = {metric: response[metric]}

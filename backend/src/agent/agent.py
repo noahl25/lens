@@ -18,50 +18,68 @@ class AgentState(TypedDict):
     messages: Annotated[List, add_messages]
 
 def stringify_content(c): 
-    c["content"] = str(c["content"]) 
+    c["content"] = str(c["content"])
     return c
 
 def llm(state: AgentState):
 
     response = asi1.asi_request_with_retry(
-        [stringify_content(message) for message in state["messages"]],
+        [message for message in state["messages"]],
         tools=TOOLS_FORMATTED
     )
 
-    return { "messages": 
-        [
-            {
-                "role": "assistant",
-                "content": response.choices[0]
-            }
-        ] 
-    }
+    if response.choices[0].message.tool_calls:
+        tool = response.choices[0].message.tool_calls[0]
+        return {
+            "messages": [
+                {
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "id": tool.id,
+                            "type": "function",
+                            "index": str(len(state["messages"]) - 1),
+                            "function": {
+                                "name": tool.function.name, #type: ignore
+                                "arguments": tool.function.arguments, #type: ignore
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    else:
+        return {
+            "messages": [
+                {
+                    "role": "assistant",
+                    "content": response.choices[0]
+                }
+            ]
+        }
 
 def tool_node(state: AgentState):
     
     results = []
-    for func in state["messages"][-1]["content"].message.tool_calls:
-        args = json.loads(func.function.arguments)
-        args = {k: v for k, v in args.items() if v is not None}
-        print("calling tool: " + func.function.name + " with args: " + json.dumps(args))
-        result = TOOLS_DICT[func.function.name](**args)
-        results.append({"role": "assistant", "content": f"<TOOL_CALL_{func.function.name}={json.dumps(args)}>" + str(result)})
-        results.append({ "role": "assistant", "content": f"{func.function.name} function call successful"})
+    func = state["messages"][-1]["tool_calls"][0]
+    args = json.loads(func["function"]["arguments"])
+    args = {k: v for k, v in args.items() if v is not None}
+    print("calling tool: " + func["function"]["name"] + " with args: " + json.dumps(args))
+    result = TOOLS_DICT[func["function"]["name"]](**args)
+    results.append({"role": "tool", "content": json.dumps(result), "tool_call_id": func["id"],})
     return {"messages": results }
 
 
 def has_tools(state: AgentState):
     """ Conditional edge. """
-
-    tool_calls = getattr(state["messages"][-1]["content"].message, "tool_calls", None)
-    if bool(tool_calls and len(tool_calls) > 0):
+    if state["messages"][-1].get("tool_calls", None):
         return True
     return False
 
 
 def create_dashboard(state: AgentState):
 
-
+    print(json.dumps(state, indent=2, default=str, ensure_ascii=False))
     state["messages"][-1]["content"] = "SUMMARY: " + state["messages"][-1]["content"].message.content
     cleaned_summary = state["messages"][-1]["content"].encode('utf-8').decode('unicode_escape').strip("[]").replace("â€$", "-").replace("â€", "-").replace("â", "-").replace("\\", "")
     response = asi1.asi_request(
@@ -78,25 +96,25 @@ def create_dashboard(state: AgentState):
     ) # In case the model hallucinates initially.
     cleaned_summary = response.choices[0].message.content.encode('utf-8').decode('unicode_escape').strip("[]").replace("â€$", "-").replace("â€", "-").replace("â", "-").replace("\\", "") #type: ignore
 
-    # print(json.dumps(state, indent=2, default=str, ensure_ascii=False))
-    # print(cleaned_summary)
+    #print(cleaned_summary)
 
     final_dashboard = {}
     final_dashboard["summary"] = cleaned_summary
 
-    for message in state["messages"]:
-        if message["role"] == "assistant" and message["content"].startswith("<TOOL_CALL_"):
-            i = message["content"].replace("<TOOL_CALL_", "")
-            i = i[:i.index(">")]
-
-            func = i.split("=")[0]
-            args = i.split("=")[-1]
-            data = message["content"][message["content"].index(">") + 1:]
-
-            match func:
+    for i, message in enumerate(state["messages"]):
+        if message["role"] == "tool":
+            func = state["messages"][i - 1]["tool_calls"][0]["function"]
+            args = json.loads(func["arguments"])
+            data = json.loads(message["content"])
+            match func["name"]:
                 case "historical_data":
                     dashboard.create_graph(data, args)
+                case "coin_general_data":
+                    dashboard.create_table(data, args)
+                case _:
+                    raise RuntimeError("No tool name match.")
 
+    dashboard.finalize_table()
 
 graph = StateGraph(AgentState)
 def create_agent():
@@ -114,7 +132,7 @@ def create_agent():
     
 create_agent()
 
-prompt = "historical bitcoin prices today"
+prompt = "bitcoin and ethereum metrics now"
 
 vars = metta.extract_type_tone_category(prompt)
 metta_query = metta.get_prompt(vars["type"], vars["tone"], vars["category"])

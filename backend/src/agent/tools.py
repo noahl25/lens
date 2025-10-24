@@ -239,7 +239,7 @@ def get_top_reddit_tool(time_period: Annotated[str, "Time period to get posts fr
     """ Gets top posts from reddit for a coin in a specified range. Good for getting news and the latest. Best for when wanting more personal and casual news."""
     return asyncio.run(get_top_reddit(time_period, coin, image_descriptions=True))
 
-def web_search(time_period: Annotated[str, "Time period to search. Must be \"day\", \"week\", \"month\", or \"year\""], query: Annotated[str, "Query to search."]):
+def web_search(time_period: Annotated[str, "Time period to search. Must be \"day\", \"week\", \"month\", or \"year\""], query: Annotated[str, "Query to search. Should only be 1-3 keywords."]):
     """ Searches for relevant articles and data based on the query. Good for news and recent information. Call alongside get_top_reddit_tool for most well-rounded news, if needed. """
     if time_period not in ["day", "week", "month", "year"]:
         raise ValueError("time_period must be one of: day, week, month, year")
@@ -267,3 +267,4 @@ TOOLS_FORMATTED = [
 
 TOOLS_DICT = {func.__name__: func for func in TOOLS_REF}
 
+print(TOOLS_FORMATTED)

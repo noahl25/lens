@@ -33,7 +33,7 @@ export default function Home() {
 							amplitude={1}
 							distance={0.6}
 							enableMouseInteraction={false}
-							className="absolute inset-0 z-10 pointer-events-none"
+							className="absolute inset-0 z-1 pointer-events-none"
 						/>
 						<Query setQuery={setQuery} />
 					</motion.div>

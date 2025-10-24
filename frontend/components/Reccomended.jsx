@@ -21,15 +21,19 @@ export default function Reccomended({ reccomended }) {
                 <div className="flex items-center justify-center flex-col px-5 gap-2 pt-3">
                     {
                         reccomended.map((item, key) => (
-                            <div key={key} className="w-full h-fit mb-5">
-                                <p className="text-4xl">Hello hello hello hello</p>
-                                <a href="https://www.google.com" target="_blank" className="text-white/50">https://www.google.com</a>
-                                {
-                                    item.image ? <img src={item.image} className="w-[500px] mt-4 rounded-2xl border-2 border-white/70"/>
-                                        :
-                                    <p className="w-[500px] mt-4">{item.body}</p>
-                                }
+                            <div key={key}>
+                                <div className="w-full h-fit mb-5">
+                                    <p className="text-4xl">Hello hello hello hello</p>
+                                    <a href="https://www.google.com" target="_blank" className="text-white/50">https://www.google.com</a>
+                                    {
+                                        item.image ? <img src={item.image} className="w-[800px] mt-4 rounded-2xl border-2 border-white/70"/>
+                                            :
+                                        <p className="w-[500px] mt-4">{item.body}</p>
+                                    }
+                                </div>
+                                <div className="w-full h-[2px] bg-white mt-4 mb-2"/>
                             </div>
+
                         ))
                     }
                 </div>

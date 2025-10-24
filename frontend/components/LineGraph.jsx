@@ -16,6 +16,8 @@ import {
 export function LineGraph({ data, title, subtitle}) {
 
     const [key, setKey] = useState("");
+
+    console.log(data)
     
     useEffect(() => {
         for (let key in data[0]) {
@@ -33,7 +35,7 @@ export function LineGraph({ data, title, subtitle}) {
     };
 
     return (
-        <Card className="pt-0 bg-black text-white border-white/20 border-2 col-span-2">
+        <Card className="pt-0 bg-black text-white border-white/20 border-2 col-span-2 flex flex-col h-full">
             <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
                 <div className="grid flex-1 gap-1">
                     <CardTitle>{title}</CardTitle>
@@ -42,10 +44,10 @@ export function LineGraph({ data, title, subtitle}) {
                     </CardDescription>
                 </div>
             </CardHeader>
-            <CardContent className="mr-10 flex justify-center items-center">
+            <CardContent className="flex-1 flex items-center justify-center">
                 <ChartContainer
                     config={chartConfig}
-                    className="aspect-auto h-[300px] bg-black rounded-lg grow"
+                    className="h-[300px] bg-black rounded-lg mx-auto w-full max-w-[800px] mr-10"
                 >
                     <AreaChart data={data} className="p-2">
                         <defs>

@@ -12,10 +12,13 @@ import Reccomended from "./Reccomended";
 
 export default function Dashboard({ query }) {
 
+    const table = require("./table.json")
+
     const chartData = [
-        { date: "2024-04-01", line: 222 },
-        { date: "2024-04-02", line: 97},
-        { date: "2024-04-03", line: 167 },
+        { date: "August 10", line: 100 },
+        { date: "August 11", line: 200 },
+        { date: "August 12", line: 300 }
+        
     ]
 
     return (
@@ -36,7 +39,7 @@ export default function Dashboard({ query }) {
                 </div>
                 <div className="grid grid-flow-row-dense grid-cols-3 gap-10 auto-rows-min auto-flow-dense">
                     <LineGraph data={chartData} title={"Hello!"} subtitle={"Hello world!"}/>
-                    <DashboardTable title={"Hello"} subtitle={"Hello world"} headers={["Btc", "Eth"]} data={[["price", "1", "2"]]}/>
+                    <DashboardTable title={table.title} subtitle={table.subtitle} headers={table.headers} data={table.data}/>
                     <DashboardRadial title={"Hello"} subtitle={"Hello world"} label={"Sentiment"} min={-1} max={1} number={-0.25} leftLabel={"Positive"} rightLabel={"Negative"}/>
                     <Summary title={"Hello"} subtitle={"Hello world"} text={"Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum."}/>
                     <Reccomended reccomended={[
