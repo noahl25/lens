@@ -1,6 +1,10 @@
+'use client'
+
 import { Megrim } from "next/font/google";
 import { Geist_Mono } from "next/font/google";
 import Header from "@/components/Header";
+import Threads from "@/components/Threads";
+import { motion } from "motion/react";
 import "./globals.css";
 
 export const megrim = Megrim({
@@ -21,9 +25,9 @@ const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className="bg-black">
       <body
-        className={`${megrim.className} antialiased bg-black`}
+        className={`${megrim.className} antialiased bg-black overflow-x-hidden`}
       >
         <Header />
         {children}

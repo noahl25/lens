@@ -19,7 +19,7 @@ export default function Home() {
 	}, [query]);
 
 	return (
-		<>
+		<div className="overflow-x-hidden">
 			<div className="absolute inset-0 bg-black -z-100"></div>
 			<AnimatePresence mode="wait">
 				{!querySubmitted ? (
@@ -27,13 +27,13 @@ export default function Home() {
 						key="query"
 						exit={{ opacity: 0 }}
 						transition={{ duration: 0.8 }}
-						className="w-screen h-screen flex justify-center items-center bg-black relative bg-carbon"
+						className="w-screen h-screen flex justify-center items-center bg-black relative"
 					>
 						<Threads
 							amplitude={1}
 							distance={0.6}
 							enableMouseInteraction={false}
-							className="absolute inset-0"
+							className="absolute inset-0 z-10 pointer-events-none"
 						/>
 						<Query setQuery={setQuery} />
 					</motion.div>
@@ -44,12 +44,13 @@ export default function Home() {
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						transition={{ duration: 0.8 }}
+						className="overflow-x-hidden"
 					>
 						<Dashboard query={query} />
 					</motion.div>
 				)}
 			</AnimatePresence>
 
-		</>
+		</div>
 	);
 }

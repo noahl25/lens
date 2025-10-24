@@ -45,7 +45,7 @@ def asi_request(messages: List, model: str = "asi1-extended", temperature: float
 def asi_request_with_retry(messages, tools, retries=3, delay=2):
     for attempt in range(retries):
         try:
-            return asi_request(messages, tools=tools)
+            return asi_request(messages, tools=tools, max_tokens=6000)
         except Exception as e:
             print(f"Attempt {attempt+1} failed: {e}")
             time.sleep(delay)
@@ -53,6 +53,6 @@ def asi_request_with_retry(messages, tools, retries=3, delay=2):
     raise RuntimeError("Max retries reached")
 
 def get_structured_output(response):
-    if not response.choices[0].message.tool_calls[0]:
+    if not response.choices[0].message.tool_calls:
         raise RuntimeError("No structured output.")
     return json.loads(response.choices[0].message.tool_calls[0].function.arguments)

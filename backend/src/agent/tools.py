@@ -57,7 +57,7 @@ def create_tool_schema(func: Callable):
     }
     
 def fear_and_greed_index(limit: Annotated[int, "Days in past of greed/fear to get."]):
-    """ Gets fear and greed index for a specified timespan. """
+    """ Gets fear and greed index for a specified timespan. Gives a number from 0 to 100, where 0 is extreme fear and 100 is extreme greed. """
 
     url = "https://pro-api.coinmarketcap.com/v3/fear-and-greed/historical"
     
@@ -104,6 +104,7 @@ async def analyze_image_sentiment(session, client, post, index = 0) -> Dict:
         "image_description": result["short_description"],
         "date": post["date"],
         "datestr": post["datestr"],
+        "post_link": post.shortlink,
         "index": index
     }
 
@@ -138,7 +139,8 @@ async def get_top_reddit(time_period: str, coin: str = "", image_descriptions: b
                 "body": post.selftext,
                 "date": float(post.created_utc),
                 "datestr": datetime.fromtimestamp(post.created_utc).strftime("%m/%d/%Y"),
-                "type": "text"
+                "type": "text",
+                "post_link": post.shortlink
             })
         elif post.url.endswith((".jpg", ".png", ".jpeg")):
             posts.append({
@@ -146,7 +148,8 @@ async def get_top_reddit(time_period: str, coin: str = "", image_descriptions: b
                 "url": post.url,
                 "date": float(post.created_utc),
                 "datestr": datetime.fromtimestamp(post.created_utc).strftime("%m/%d/%Y"),
-                "type": "image"
+                "type": "image",
+                "post_link": post.shortlink
             })
         else:
             posts.append({
@@ -154,7 +157,8 @@ async def get_top_reddit(time_period: str, coin: str = "", image_descriptions: b
                 "body": "",
                 "date": float(post.created_utc),
                 "datestr": datetime.fromtimestamp(post.created_utc).strftime("%m/%d/%Y"),
-                "type": "title"
+                "type": "title",
+                "post_link": post.shortlink
             })
 
     if image_descriptions:
@@ -192,7 +196,8 @@ async def social_sentiment(time_period: str, coin: str = ""):
                         "sentiment_score": score["compound"],
                         "date": post["date"],
                         "datestr": post["datestr"],
-                        "body": post["body"]
+                        "body": post["body"],
+                        "post_link": post["post_link"]
                     })
                 elif post["type"] == "image":
                     image_tasks.append(
@@ -241,6 +246,8 @@ def web_search(time_period: Annotated[str, "Time period to search. Must be \"day
 
     tavily_client = TavilyClient(api_key=os.getenv("TAVILY_KEY"))
     response = tavily_client.search(query, topic="news", time_range=cast(Literal['day', 'week', 'month', 'year'], time_period), max_results=10)
+    for result in response["results"]:
+        result["post_link"] = result.pop("url")
     return response["results"]
 
 import coingecko.endpoints
@@ -259,3 +266,4 @@ TOOLS_FORMATTED = [
 ]
 
 TOOLS_DICT = {func.__name__: func for func in TOOLS_REF}
+

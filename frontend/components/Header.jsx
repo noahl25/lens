@@ -43,7 +43,7 @@ export default function Header() {
                         {
                             [...Array(2)].map((_, i) => (
                                 <div key={i} className="flex gap-2">
-                                    {["be great", "love each other", "become something amazing", "join the community", "these are just placeholders"].map((str, key) => ( 
+                                    {["learn", "become great", "acheive", "grow", "discover"].map((str, key) => ( 
                                         <div
                                             key={`${i}-${key}`}
                                             className="bg-black text-white uppercase whitespace-nowrap flex flex-row items-center gap-2"
