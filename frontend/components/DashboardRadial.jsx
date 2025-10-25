@@ -37,6 +37,10 @@ export default function DashboardRadial({ title, subtitle, label, min, max, numb
             <CardContent className="flex flex-1 items-center justify-center pb-0">
                 <ChartContainer
                     className="mx-auto aspect-square w-full max-w-[250px] relative translate-y-1/8"
+                    config={{
+                        [rightLabel]: { color: "" },
+                        [leftLabel]: { color: "" }
+                    }}
                 >
                     <RadialBarChart
                         data={chartData}
@@ -53,7 +57,7 @@ export default function DashboardRadial({ title, subtitle, label, min, max, numb
                                 content={({ viewBox }) => {
                                     if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                                         return (
-                                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" fill={labelColor === "red" ? "rgba(128, 0, 0, 1)" : "#007d00ff"}>
+                                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" fill={labelColor === "red" ? "rgba(128, 0, 0, 1)" : "rgba(43, 128, 0, 1)"}>
                                                 <tspan
                                                     x={viewBox.cx}
                                                     y={(viewBox.cy || 0) - 16}

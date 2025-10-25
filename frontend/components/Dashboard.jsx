@@ -17,7 +17,7 @@ export default function Dashboard({ query }) {
     const [ready, setReady] = useState(false);
     const [error, setError] = useState(false);
 
-    const getComponent = (component, key) => {
+    const getComponent = (component, key, components) => {
         return (
             <>
                 {(() => {
@@ -43,6 +43,7 @@ export default function Dashboard({ query }) {
                                     title={component.title}
                                     subtitle={component.subtitle}
                                     text={component.text}
+                                    cols={3 - components[key - 1].cols}
                                 />
                             );
 
@@ -112,26 +113,28 @@ export default function Dashboard({ query }) {
     const { makeRequest } = useApi();
     useEffect(() => {
 
-        if (!ready) {
-            makeRequest("chat", {
-                method: "POST",
-                body: JSON.stringify({
-                    "request": query
-                })
-            }).then((result) => {
-                if ("result" in result) {
-                    if (!components) {
-                        setReady(true);
-                        setComponents(result.result);
+        // if (!ready) {
+        //     makeRequest("chat", {
+        //         method: "POST",
+        //         body: JSON.stringify({
+        //             "request": query
+        //         })
+        //     }).then((result) => {
+        //         if ("result" in result) {
+        //             if (!components) {
+        //                 setReady(true);
+        //                 setComponents(result.result);
 
-                        console.log(result.result)
-                    }
-                }
-                else {
-                    setError(true);
-                }
-            })
-        }
+        //                 console.log(result.result)
+        //             }
+        //         }
+        //         else {
+        //             setError(true);
+        //         }
+        //     })
+        // }
+        setReady(true);
+        setComponents(require("./data.json").result)
 
     }, []);
 
@@ -170,7 +173,7 @@ export default function Dashboard({ query }) {
                                 {
                                     components.map((item, key) => {
                                         return <Fragment key={key}>
-                                            {getComponent(item, key)}
+                                            {getComponent(item, key, components)}
                                         </Fragment>
                                         })
                                 }
