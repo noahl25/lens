@@ -2,16 +2,17 @@ from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, END, START
 from dotenv import load_dotenv
-from asi1 import asi1
-from tools import TOOLS_FORMATTED, TOOLS_DICT
-from prompts import AGENT_PROMPT, SUMMARY_PROMPT
+from .asi1 import asi1
+from .tools import TOOLS_FORMATTED, TOOLS_DICT
+from .prompts import AGENT_PROMPT, SUMMARY_PROMPT
 import json
-from metta import metta
-from dashboard import dashboard
+from .metta import metta
+from .dashboard import dashboard
 
 from operator import add as add_messages
 from typing import List, Annotated, TypedDict, Any
 import ftfy
+import asyncio
 
 load_dotenv()
 
@@ -59,14 +60,18 @@ def llm(state: AgentState):
             ]
         }
 
-def tool_node(state: AgentState):
+async def tool_node(state: AgentState):
     
     results = []
     func = state["messages"][-1]["tool_calls"][0]
     args = json.loads(func["function"]["arguments"])
     args = {k: v for k, v in args.items() if v is not None}
     print("calling tool: " + func["function"]["name"] + " with args: " + json.dumps(args))
-    result = TOOLS_DICT[func["function"]["name"]](**args)
+    tool_func = TOOLS_DICT[func["function"]["name"]]
+    if asyncio.iscoroutinefunction(tool_func):
+        result = await tool_func(**args)
+    else:
+        result = tool_func(**args)
     results.append({"role": "tool", "content": json.dumps(result), "tool_call_id": func["id"],})
     return {"messages": results }
 
@@ -80,7 +85,7 @@ def has_tools(state: AgentState):
 
 def create_dashboard(state: AgentState):
     state["messages"][-1]["content"] = "SUMMARY: " + state["messages"][-1]["content"].message.content
-    print(json.dumps(state["messages"], indent=2))
+    # print(json.dumps(state["messages"], indent=2))
     cleaned_summary = ftfy.fix_encoding(state["messages"][-1]["content"])
     response = asi1.asi_request(
         [
@@ -96,8 +101,7 @@ def create_dashboard(state: AgentState):
     ) # In case the model hallucinates initially.
     cleaned_summary = ftfy.fix_encoding(response.choices[0].message.content) #type: ignore
 
-    final_dashboard = {}
-    final_dashboard["summary"] = cleaned_summary
+    dash = dashboard.DashboardBuilder()
 
     for i, message in enumerate(state["messages"]):
         if message["role"] == "tool":
@@ -106,28 +110,27 @@ def create_dashboard(state: AgentState):
             data = json.loads(message["content"])
             match func["name"]:
                 case "historical_data":
-                    dashboard.create_graph(data, args)
+                    dash.create_graph(data, args)
                 case "coin_general_data":
-                    dashboard.create_table(data, args)
+                    dash.create_table(data, args)
                 case "fear_and_greed_index":
-                    dashboard.create_radial(data, args, "Fear and Greed")
+                    dash.create_radial(data, args, "Fear and Greed")
                 case "social_sentiment_tool":
-                    dashboard.create_radial(data, args, "Social Sentiment")
+                    dash.create_radial(data, args, "Social Sentiment")
                 case "web_search":
-                    print("here")
-                    dashboard.create_recomended(data)
+                    dash.create_recomended(data)
                 case _:
                     print(f"no relevant dashboard component for {func}.")
 
-    dashboard.finalize_table()
-    dashboard.finalize_recommended()
-    dashboard.add_summary(cleaned_summary)
-    dashboard.sort_dashboard()
+    dash.finalize_table()
+    dash.finalize_recommended()
+    dash.add_summary(cleaned_summary)
+    dash.sort_dashboard()
 
     #print(json.dumps(dashboard.final_dashboard))
     return {
         "messages": [
-            dashboard.final_dashboard
+            dash.get_final_dashboard()
         ]
     }
     
@@ -148,7 +151,7 @@ def create_agent():
     
 create_agent()
 
-def run_agent(prompt: str) -> List:
+async def run_agent(prompt: str) -> List:
 
     vars = metta.extract_type_tone_category(prompt)
     metta_query = metta.get_prompt(vars["type"], vars["tone"], vars["category"])
@@ -165,6 +168,6 @@ def run_agent(prompt: str) -> List:
     ]
 
     agent = graph.compile()
-    result = agent.invoke({"messages": input})
+    result = await agent.ainvoke({"messages": input})
 
     return result["messages"][-1]

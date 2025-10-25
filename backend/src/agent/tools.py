@@ -18,7 +18,7 @@ import asyncio
 from collections import defaultdict
 import ftfy
 
-from prompts import IMAGE_SENTIMENT_PROMPT
+from .prompts import IMAGE_SENTIMENT_PROMPT
 
 load_dotenv()
 
@@ -228,13 +228,13 @@ async def social_sentiment(time_period: str, coin: str = ""):
 
     return results
 
-def social_sentiment_tool(time_period: Annotated[str, "Time period to get posts from. Must be \"day\", \"week\", or \"month\""], coin: Annotated[str, "Coin to check sentiment on. Blank for checking whole market sentiment."] = ""):
+async def social_sentiment_tool(time_period: Annotated[str, "Time period to get posts from. Must be \"day\", \"week\", or \"month\""], coin: Annotated[str, "Coin to check sentiment on. Blank for checking whole market sentiment."] = ""):
     """ Gets social sentiment of a coin in a specified range. """
-    return asyncio.run(social_sentiment(time_period, coin))
+    return await social_sentiment(time_period, coin)
 
-def get_top_reddit_tool(time_period: Annotated[str, "Time period to get posts from. Must be \"day\", \"week\", or \"month\""], coin: Annotated[str, "Coin to get posts from."] = ""):
+async def get_top_reddit_tool(time_period: Annotated[str, "Time period to get posts from. Must be \"day\", \"week\", or \"month\""], coin: Annotated[str, "Coin to get posts from."] = ""):
     """ Gets top posts from reddit for a coin in a specified range. Good for getting news and the latest. Best for when wanting more personal and casual news."""
-    return asyncio.run(get_top_reddit(time_period, coin, image_descriptions=True))
+    return await get_top_reddit(time_period, coin, image_descriptions=True)
 
 def web_search(time_period: Annotated[str, "Time period to search. Must be \"day\", \"week\", \"month\", or \"year\""], query: Annotated[str, "Query to search. Should only be 1-3 keywords."]):
     """ Searches for relevant articles and data based on the query. Good for news and recent information. Call alongside get_top_reddit_tool for most well-rounded news, if needed. """
@@ -247,15 +247,15 @@ def web_search(time_period: Annotated[str, "Time period to search. Must be \"day
         result["content"] = ftfy.fix_encoding(result["content"]).replace("\n", "")
     return response["results"]
 
-import coingecko.endpoints
-coingecko_functions = inspect.getmembers(coingecko.endpoints, inspect.isfunction)
+from .coingecko import endpoints
+coingecko_functions = inspect.getmembers(endpoints, inspect.isfunction)
 
 TOOLS_REF = [
     social_sentiment_tool,
     get_top_reddit_tool,
     web_search,
     fear_and_greed_index,
-    *[func for _, func in coingecko_functions if func.__module__ == coingecko.endpoints.__name__]
+    *[func for _, func in coingecko_functions if func.__module__ == endpoints.__name__]
 ]
 
 TOOLS_FORMATTED = [

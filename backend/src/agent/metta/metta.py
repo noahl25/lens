@@ -2,7 +2,7 @@ from hyperon import MeTTa, ValueAtom, E, S
 import os
 from pydantic import BaseModel
 from openai import pydantic_function_tool
-from asi1 import asi1
+from ..asi1 import asi1
 
 metta = MeTTa()
 

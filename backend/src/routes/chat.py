@@ -10,9 +10,6 @@ class ChatRequest(BaseModel):
 @router.post("/chat")
 async def chat(chat_request: ChatRequest):
     
-    try:
-        result = run_agent(chat_request.request)
-    except Exception as e:
-        return { "error": str(e) }
+    result = await run_agent(chat_request.request)
 
     return { "result": result }
