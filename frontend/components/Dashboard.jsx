@@ -17,6 +17,27 @@ export default function Dashboard({ query }) {
     const [ready, setReady] = useState(false);
     const [error, setError] = useState(false);
 
+    const getRemainingCols = (currentIndex, components) => {
+
+        const totalCols = 3;
+        let usedCols = 0;
+
+        for (let i = 0; i < currentIndex; i++) {
+            const c = components[i];
+            const cols = c.cols || 1;
+            usedCols += cols;
+        }
+
+        const remaining = usedCols % totalCols;
+        if (remaining == 0) {
+            console.log()
+            return 3 - components[currentIndex + 1].cols;
+        }
+        else {
+            return 3 - remaining
+        }
+    };
+
     const getComponent = (component, key, components) => {
         return (
             <>
@@ -43,7 +64,7 @@ export default function Dashboard({ query }) {
                                     title={component.title}
                                     subtitle={component.subtitle}
                                     text={component.text}
-                                    cols={3 - components[key - 1].cols}
+                                    cols={getRemainingCols(key, components)}
                                 />
                             );
 
@@ -113,28 +134,26 @@ export default function Dashboard({ query }) {
     const { makeRequest } = useApi();
     useEffect(() => {
 
-        // if (!ready) {
-        //     makeRequest("chat", {
-        //         method: "POST",
-        //         body: JSON.stringify({
-        //             "request": query
-        //         })
-        //     }).then((result) => {
-        //         if ("result" in result) {
-        //             if (!components) {
-        //                 setReady(true);
-        //                 setComponents(result.result);
+        if (!ready) {
+            makeRequest("chat", {
+                method: "POST",
+                body: JSON.stringify({
+                    "request": query
+                })
+            }).then((result) => {
+                if ("result" in result) {
+                    if (!components) {
+                        setReady(true);
+                        setComponents(result.result);
 
-        //                 console.log(result.result)
-        //             }
-        //         }
-        //         else {
-        //             setError(true);
-        //         }
-        //     })
-        // }
-        setReady(true);
-        setComponents(require("./data.json").result)
+                        console.log(result.result)
+                    }
+                }
+                else {
+                    setError(true);
+                }
+            })
+        }
 
     }, []);
 
