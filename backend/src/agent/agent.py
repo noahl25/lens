@@ -30,6 +30,8 @@ def llm(state: AgentState):
         tools=TOOLS_FORMATTED
     )
 
+    print(json.dumps(state["messages"], indent=2))
+
     if response.choices[0].message.tool_calls:
         tool = response.choices[0].message.tool_calls[0]
         return {
@@ -84,7 +86,7 @@ def has_tools(state: AgentState):
 
 
 def create_dashboard(state: AgentState):
-    state["messages"][-1]["content"] = "SUMMARY: " + state["messages"][-1]["content"].message.content
+    state["messages"][-1]["content"] = state["messages"][-1]["content"].message.content
     # print(json.dumps(state["messages"], indent=2))
     cleaned_summary = ftfy.fix_encoding(state["messages"][-1]["content"])
     response = asi1.asi_request(

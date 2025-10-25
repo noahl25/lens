@@ -217,6 +217,11 @@ async def social_sentiment(time_period: str, coin: str = ""):
         for date, scores in daily_scores.items()
     ]
 
+    if len([item for item in results if "sentiment_score" in item]) == 0:
+        print(posts)
+        print(results)
+        raise RuntimeError("unable to get sentiment.")
+
     overall_avg = sum([item["sentiment_score"] for item in results if "sentiment_score" in item]) / len([item for item in results if "sentiment_score" in item])
 
     results.append({

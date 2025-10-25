@@ -2,14 +2,14 @@ import json
 
 class DashboardBuilder:
 
-    final_dashboard = []
-    table_coins = []
-    current_table_headers = []
-    current_table_data = []
-    recommended = []
+    def __init__(self):
+        self.table_coins = []
+        self.final_dashboard = []
+        self.current_table_headers = []
+        self.current_table_data = []
+        self.recommended = []
 
-    @classmethod
-    def create_graph(cls, data, args):
+    def create_graph(self, data, args):
         for metric, values in data.items():
 
             title = f"{args['coin_id'].capitalize()} {metric.capitalize()}"
@@ -22,7 +22,7 @@ class DashboardBuilder:
                     "line": point[1]
                 })
 
-            cls.final_dashboard.append({
+            self.final_dashboard.append({
                 "type": "graph",
                 "title": title,
                 "subtitle": subtitle,
@@ -30,46 +30,45 @@ class DashboardBuilder:
                 "cols": 2
             })
 
-    @classmethod
-    def create_table(cls, data, args):
+    def create_table(self, data, args):
 
         data = data[0]
 
         row = []
         row.append(args["coin_id"].capitalize())
-        cls.table_coins.append(args["coin_id"].capitalize())
+        self.table_coins.append(args["coin_id"].capitalize())
 
         for metric, value in data.items():
             if metric not in ["image", "roi"]:
-                if ",".join([word.capitalize() for word in metric.split("_")]) not in cls.current_table_headers:
-                    cls.current_table_headers.append(" ".join([word.capitalize() for word in metric.split("_")]))
+                if ",".join([word.capitalize() for word in metric.split("_")]) not in self.current_table_headers:
+                    self.current_table_headers.append(" ".join([word.capitalize() for word in metric.split("_")]))
                 if type(value) == int or type(value) == float:
                     row.append(f"{value:,.2f}" if value else "Unknown")
                 else:
                     row.append(value if value else "Unknown")
         
-        cls.current_table_data.append(row)
+        self.current_table_data.append(row)
 
-    @classmethod
-    def finalize_table(cls):
-        if len(cls.current_table_headers) > 0:
-            cls.final_dashboard.append({
+    
+    def finalize_table(self):
+        if len(self.current_table_headers) > 0:
+            self.final_dashboard.append({
                 "type": "table",
-                "title": ", ".join(cls.table_coins) + " Metrics",
-                "subtitle": f"Various data points for {', '.join(cls.table_coins)}.",
-                "headers": cls.current_table_headers,
-                "data": cls.current_table_data,
+                "title": ", ".join(self.table_coins) + " Metrics",
+                "subtitle": f"Various data points for {', '.join(self.table_coins)}.",
+                "headers": self.current_table_headers,
+                "data": self.current_table_data,
                 "cols": 1
             })
 
-    @classmethod
-    def create_radial(cls, data, args, type_):
+    
+    def create_radial(self, data, args, type_):
 
         if data[-1].get("average_sentiments", None):
             title = f"{type_} for {args['coin'].capitalize() if args.get("coin", None) else ' the overall market.'}"
             subtitle = f"{type_} calulated using various posts from the past {args['time_period']}."
             value = data[-1]["average_sentiments"]["overall_average_sentiment"]
-            cls.final_dashboard.append({
+            self.final_dashboard.append({
                 "type": "radial",
                 "title": title,
                 "subtitle": subtitle,
@@ -87,7 +86,7 @@ class DashboardBuilder:
             title = f"Fear and Greed"
             subtitle = f"The emotional state of the market from the past {args['limit']} days."
             value = sum([int(item["value"]) for item in data]) / len(data)
-            cls.final_dashboard.append({
+            self.final_dashboard.append({
                 "type": "radial",
                 "title": title,
                 "subtitle": subtitle,
@@ -101,27 +100,27 @@ class DashboardBuilder:
                 "color": "red" if value < 50 else "green"
             })
 
-    @classmethod
-    def create_recomended(cls, data):
+    
+    def create_recomended(self, data):
         for article in data:
-            cls.recommended.append({
+            self.recommended.append({
                 "url": article["url"],
                 "content": article["content"],
                 "title": article["title"]
             })
 
-    @classmethod
-    def finalize_recommended(cls):
-        if len(cls.recommended) > 0:
-            cls.final_dashboard.append({
+    
+    def finalize_recommended(self):
+        if len(self.recommended) > 0:
+            self.final_dashboard.append({
                 "type": "recommended",
-                "recommended": cls.recommended,
+                "recommended": self.recommended,
                 "cols": 2
             })
 
-    @classmethod
-    def add_summary(cls, summary):
-        cls.final_dashboard.append({
+    
+    def add_summary(self, summary):
+        self.final_dashboard.append({
             "type": "summary",
             "title": "Summary",
             "subtitle": "A summary of all the collected data.",
@@ -129,11 +128,11 @@ class DashboardBuilder:
             "cols": 2
         })
 
-    @classmethod
-    def sort_dashboard(cls):
+    
+    def sort_dashboard(self):
 
-        ones = [d for d in cls.final_dashboard if d["cols"] == 1]
-        twos = [d for d in cls.final_dashboard if d["cols"] == 2]
+        ones = [d for d in self.final_dashboard if d["cols"] == 1]
+        twos = [d for d in self.final_dashboard if d["cols"] == 2]
 
         pattern = ["1", "2", "2", "1"]
         result = []
@@ -154,8 +153,8 @@ class DashboardBuilder:
 
             i += 1
 
-        cls.final_dashboard = result
+        self.final_dashboard = result
 
-    @classmethod
-    def get_final_dashboard(cls):
-        return cls.final_dashboard
+    
+    def get_final_dashboard(self):
+        return self.final_dashboard

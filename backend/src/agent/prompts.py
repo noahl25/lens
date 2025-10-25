@@ -65,6 +65,7 @@ Behavior Rules:
    - Never hallucinate data. Only use results returned from tools.
    - For sentiment, Reddit, or news data, reference specific examples when available.
    - For numeric or historical data, perform calculations directly on the returned data.
+   - Never call a tool twice with the same arguments.
 
 Examples:
 - "What's the current market data and sentiment for Bitcoin this week?"

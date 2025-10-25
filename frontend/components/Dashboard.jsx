@@ -30,7 +30,6 @@ export default function Dashboard({ query }) {
 
         const remaining = usedCols % totalCols;
         if (remaining == 0) {
-            console.log()
             return 3 - components[currentIndex + 1].cols;
         }
         else {
