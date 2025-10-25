@@ -1,7 +1,5 @@
 'use client'
 
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
 import { fontBasic } from "@/app/layout";
 import { Search, X } from "lucide-react";
 import { LineGraph } from "./LineGraph";
@@ -9,9 +7,113 @@ import DashboardTable from "./DashboardTable";
 import Summary from "./Summary";
 import DashboardRadial from "./DashboardRadial";
 import Reccomended from "./Reccomended";
-import DashboardComponents from "./DashboardComponents";
+import { useState, useEffect } from "react";
+import { useApi } from "@/lib/api";
+import { AnimatePresence, motion } from "motion/react";
 
 export default function Dashboard({ query }) {
+
+    const [components, setComponents] = useState(undefined);
+    const [ready, setReady] = useState(false);
+    const [error, setError] = useState(false);
+
+    const getComponent = (component, key) => {
+        return (
+            <motion.div
+                key={key}
+                initial={{ opacity: 0, y: 25 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -25 }}
+                transition={{ duration: 1, ease: "easeOut", delay: 0.25 * (key + 1) }}
+                className={`col-span-${component.cols} h-[100%] flex flex-col`}
+                style={{ display: "contents" }}
+            >
+                {(() => {
+                    switch (component.type) {
+                        case "radial":
+                            return (
+                                <DashboardRadial
+                                    title={component.title}
+                                    subtitle={component.subtitle}
+                                    min={component.min}
+                                    max={component.max}
+                                    number={component.value}
+                                    label={component.label}
+                                    leftLabel={component.leftLabel}
+                                    rightLabel={component.rightLabel}
+                                    labelColor={component.color}
+                                />
+                            );
+
+                        case "summary":
+                            return (
+                                <Summary
+                                    title={component.title}
+                                    subtitle={component.subtitle}
+                                    text={component.text}
+                                />
+                            );
+
+                        case "recommended":
+                            return (
+                                <Reccomended
+                                    reccomended={component.reccomended}
+                                />
+                            );
+
+                        case "table":
+                            return (
+                                <DashboardTable
+                                    title={component.title}
+                                    subtitle={component.subtitle}
+                                    headers={component.headers}
+                                    data={component.data}
+                                />
+                            );
+
+                        case "graph":
+                            return (
+                                <LineGraph
+                                    title={component.title}
+                                    subtitle={component.subtitle}
+                                    data={component.data}
+                                />
+                            );
+
+                        default:
+                            console.error("Unknown component type:", component.type);
+                            return null;
+                    }
+                })()}
+            </motion.div>
+        );
+    };
+
+    const { makeRequest } = useApi();
+    useEffect(() => {
+
+        if (!ready) {
+            makeRequest("chat", {
+                method: "POST",
+                body: JSON.stringify({
+                    "request": query
+                })
+            }).then((result) => {
+                if ("result" in result) {
+                    if (!components) {
+                        setReady(true);
+                        setComponents(result.result);
+
+                        console.log(result.result)
+                    }
+                }
+                else {
+                    setError(true);
+                }
+            })
+        }
+
+    }, []);
 
     return (
         <div className="w-full h-full pb-10 overflow-x-hidden">
@@ -30,7 +132,42 @@ export default function Dashboard({ query }) {
                     </div>
                 </div>
                 <div className="grid grid-flow-row-dense grid-cols-3 gap-10 auto-rows-min auto-flow-dense">
-                    <DashboardComponents/>
+                    <AnimatePresence mode="wait">
+
+                        {
+                            error ? <div className="absolute left-1/2 -translate-x-1/2 top-1/3 text-white">An error occurred. Please try again.</div>
+                                :
+                                ready ?
+                                    <>
+                                        {
+                                            components.map((item, key) => (
+                                                getComponent(item, key)
+                                            ))
+                                        }
+                                    </>
+                                    :
+                                    <motion.div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/4 flex flex-col justify-center items-center"
+                                        initial={{
+                                            opacity: 0
+                                        }}
+                                        animate={{
+                                            opacity: 1
+                                        }}
+                                        exit={{
+                                            opacity: 0
+                                        }}
+                                        transition={{
+                                            repeat: Infinity,
+                                            duration: 3,
+                                            delay: 1,
+                                            repeatType: "mirror",
+                                            ease: "easeOut"
+                                        }}
+                                    >
+                                        <img src="eth.png" width={100} height={100} className="relative"></img>
+                                    </motion.div>
+                        }
+                    </AnimatePresence>
                 </div>
             </div>
         </div>

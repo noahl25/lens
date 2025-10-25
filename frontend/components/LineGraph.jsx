@@ -15,17 +15,21 @@ import {
 
 export function LineGraph({ data, title, subtitle}) {
 
-    const [key, setKey] = useState("");
-
-    console.log(data)
+    const [yDomain, setYDomain] = useState([0, 0]);
     
     useEffect(() => {
-        for (let key in data[0]) {
-            if (data[0].hasOwnProperty(key)) { 
-                setKey(key);
-            }
+        
+        if (data && data.length > 0) {
+            const values = data.map(d => d.line);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+
+            const padding = (max - min) * 0.1;
+            setYDomain([min - padding, max + padding]);
+            console.log(min, max)
         }
-    }, [])
+
+    }, [data])
 
     const chartConfig = {
         "line": {
@@ -53,12 +57,12 @@ export function LineGraph({ data, title, subtitle}) {
                         <defs>
                             <linearGradient id="fillline" x1="0" y1="0" x2="0" y2="1">
                                 <stop
-                                    offset="5%"
+                                    offset="3%"
                                     stopColor="var(--color-line)"
                                     stopOpacity={0.8}
                                 />
                                 <stop
-                                    offset="95%"
+                                    offset="5%"
                                     stopColor="var(--color-line)"
                                     stopOpacity={0.1}
                                 />
@@ -80,9 +84,31 @@ export function LineGraph({ data, title, subtitle}) {
                                 })
                             }}
                         />
-                        <YAxis/>
+                        <YAxis
+                            tickFormatter={
+                                (value) => {
+                                    return value.toExponential(2);
+                                }
+                            }
+                            domain={[_ => {
+                                if (!data || data.length === 0) return 0;
+                                const values = data.map(d => d.line);
+                                const min = Math.min(...values);
+                                const max = Math.max(...values);
+                                const padding = (max - min) * 0.1 || 1;
+                                return min - padding;
+                            }, _ => {
+                                if (!data || data.length === 0) return 1;
+                                const values = data.map(d => d.line);
+                                const max = Math.max(...values);
+                                const min = Math.min(...values);
+                                const padding = (max - min) * 0.1 || 1;
+                                return max + padding;
+                            }]}
+
+                        />
                         <Area
-                            dataKey={key}
+                            dataKey="line"
                             type="natural"
                             fill="url(#fillline)"
                             stroke="var(--color-line)"
