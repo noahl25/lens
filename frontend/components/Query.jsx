@@ -34,7 +34,7 @@ export default function Query({ setQuery }) {
 
                 <div className="w-120% h-12 mt-5 rounded-4xl backdrop-blur-md border-1 border-white/20 relative flex">
                     <TypewriterTextComponent examples={examples} showExamples={showExamples} exampleIndex={exampleIndex} setExampleIndex={setExampleIndex}/>
-                    <input type="text" ref={inputRef} className="text-sm ml-12 mr-4 focus:outline-none w-full" onKeyDown={(e) => e.key === "Enter" && onSubmit()} onClick={() => { setShowExamples(false); }} onChange={(e) => { if (e.target.value === "") setShowExamples(true); else setShowExamples(false); }}></input>
+                    <input type="text" autoComplete="off" ref={inputRef} className="text-sm ml-12 mr-4 focus:outline-none w-full" onKeyDown={(e) => e.key === "Enter" && onSubmit()} onClick={() => { setShowExamples(false); }} onChange={(e) => { if (e.target.value === "") setShowExamples(true); else setShowExamples(false); }}></input>
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2" color="#ffffff58"/>
                 </div>
                 <p className="text-xs text-white/60 mt-2 text-center">Press Enter to search</p>

@@ -17,16 +17,16 @@ export function LineGraph({ data, title, subtitle}) {
 
     const [yDomain, setYDomain] = useState([0, 0]);
     
+    const values = data.map(d => d.line);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+
     useEffect(() => {
         
         if (data && data.length > 0) {
-            const values = data.map(d => d.line);
-            const min = Math.min(...values);
-            const max = Math.max(...values);
 
             const padding = (max - min) * 0.1;
             setYDomain([min - padding, max + padding]);
-            console.log(min, max)
         }
 
     }, [data])
@@ -37,7 +37,7 @@ export function LineGraph({ data, title, subtitle}) {
             color: "var(--chart-1)",
         },
     };
-
+    
     return (
         <Card className="pt-0 bg-black text-white border-white/20 border-2 col-span-2 flex flex-col h-full">
             <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
@@ -54,21 +54,6 @@ export function LineGraph({ data, title, subtitle}) {
                     className="h-[300px] bg-black rounded-lg mx-auto w-full max-w-[800px] mr-10"
                 >
                     <AreaChart data={data} className="p-2">
-                        <defs>
-                            <linearGradient id="fillline" x1="0" y1="0" x2="0" y2="1">
-                                <stop
-                                    offset="3%"
-                                    stopColor="var(--color-line)"
-                                    stopOpacity={0.8}
-                                />
-                                <stop
-                                    offset="5%"
-                                    stopColor="var(--color-line)"
-                                    stopOpacity={0.1}
-                                />
-                            </linearGradient>
-
-                        </defs>
                         <CartesianGrid vertical={false} />
                         <XAxis
                             dataKey="date"

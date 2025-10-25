@@ -7,7 +7,7 @@ import DashboardTable from "./DashboardTable";
 import Summary from "./Summary";
 import DashboardRadial from "./DashboardRadial";
 import Reccomended from "./Reccomended";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useApi } from "@/lib/api";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -19,15 +19,7 @@ export default function Dashboard({ query }) {
 
     const getComponent = (component, key) => {
         return (
-            <motion.div
-                key={key}
-                initial={{ opacity: 0, y: 25 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -25 }}
-                transition={{ duration: 1, ease: "easeOut", delay: 0.25 * (key + 1) }}
-                className={`col-span-${component.cols} h-[100%] flex flex-col`}
-                style={{ display: "contents" }}
-            >
+            <>
                 {(() => {
                     switch (component.type) {
                         case "radial":
@@ -57,7 +49,7 @@ export default function Dashboard({ query }) {
                         case "recommended":
                             return (
                                 <Reccomended
-                                    reccomended={component.reccomended}
+                                    reccomended={component.recommended}
                                 />
                             );
 
@@ -85,9 +77,38 @@ export default function Dashboard({ query }) {
                             return null;
                     }
                 })()}
-            </motion.div>
+            </>
         );
     };
+
+    const inputRef = useRef();
+    const onSubmit = () => {
+
+        setReady(false);
+        setComponents(undefined);
+        setError(false);
+        console.log("here")
+
+        makeRequest("chat", {
+            method: "POST",
+            body: JSON.stringify({
+                "request": inputRef.current.value
+            })
+        }).then((result) => {
+            if ("result" in result) {
+                if (!components) {
+                    setReady(true);
+                    setComponents(result.result);
+
+                    console.log(result.result)
+                }
+            }
+            else {
+                setError(true);
+            }
+        })
+
+    }
 
     const { makeRequest } = useApi();
     useEffect(() => {
@@ -125,50 +146,59 @@ export default function Dashboard({ query }) {
                     </div>
                     <div>
                         <div className="w-[500px] h-12 rounded-4xl backdrop-blur-md border-2 border-white/50 relative flex">
-                            <input placeholder={query} type="text" className="text-sm ml-12 mr-4 focus:outline-none w-full"></input>
+                            <input ref={inputRef} placeholder={query} type="text" className="text-sm ml-12 mr-4 focus:outline-none w-full" onKeyDown={(e) => e.key === "Enter" && onSubmit()}></input>
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2" color="#ffffff74" />
                         </div>
                         <p className="text-xs text-center text-white/60 mt-2">Press Enter to search.</p>
                     </div>
                 </div>
-                <div className="grid grid-flow-row-dense grid-cols-3 gap-10 auto-rows-min auto-flow-dense">
-                    <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait">
 
-                        {
-                            error ? <div className="absolute left-1/2 -translate-x-1/2 top-1/3 text-white">An error occurred. Please try again.</div>
+                    {
+                        error ? <div className="absolute left-1/2 -translate-x-1/2 top-1/3 text-white">An error occurred. Please try again.</div>
+                            :
+                            ready ?
+                                <motion.div className="grid grid-flow-row-dense grid-cols-3 gap-10 auto-rows-min auto-flow-dense"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{
+                                        duration: 1,
+                                        ease: "easeInOut"
+                                    }}
+                                    exit={{
+                                        opacity: 0
+                                    }}
+                                    key="components"
+                                >
+                                    {
+                                        components.map((item, key) => (
+                                            getComponent(item, key)
+                                        ))
+                                    }
+                                </motion.div>
                                 :
-                                ready ?
-                                    <>
-                                        {
-                                            components.map((item, key) => (
-                                                getComponent(item, key)
-                                            ))
-                                        }
-                                    </>
-                                    :
-                                    <motion.div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/4 flex flex-col justify-center items-center"
-                                        initial={{
-                                            opacity: 0
-                                        }}
-                                        animate={{
-                                            opacity: 1
-                                        }}
-                                        exit={{
-                                            opacity: 0
-                                        }}
-                                        transition={{
-                                            repeat: Infinity,
-                                            duration: 3,
-                                            delay: 1,
-                                            repeatType: "mirror",
-                                            ease: "easeOut"
-                                        }}
-                                    >
-                                        <img src="eth.png" width={100} height={100} className="relative"></img>
-                                    </motion.div>
-                        }
-                    </AnimatePresence>
-                </div>
+                                <motion.div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/4 flex flex-col justify-center items-center" key="waiting"
+                                    initial={{
+                                        opacity: 0
+                                    }}
+                                    animate={{
+                                        opacity: 1
+                                    }}
+                                    exit={{
+                                        opacity: 0
+                                    }}
+                                    transition={{
+                                        repeat: Infinity,
+                                        duration: 3,
+                                        delay: 1,
+                                        repeatType: "mirror",
+                                        ease: "easeOut"
+                                    }}
+                                >
+                                    <img src="eth.png" width={100} height={100} className="relative"></img>
+                                </motion.div>
+                    }
+                </AnimatePresence>
             </div>
         </div>
     );

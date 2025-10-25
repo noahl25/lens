@@ -18,21 +18,6 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 
-export const description = "A radial chart with stacked sections"
-
-const chartData = [{ month: "january", desktop: 1260, mobile: 570 }]
-
-const chartConfig = {
-    desktop: {
-        label: "Desktop",
-        color: "var(--chart-1)",
-    },
-    mobile: {
-        label: "Mobile",
-        color: "var(--chart-2)",
-    },
-} 
-
 export default function DashboardRadial({ title, subtitle, label, min, max, number, rightLabel, leftLabel, labelColor = "red" }) {
 
     let pct = (number - min) / (max - min) * 100;
@@ -51,7 +36,6 @@ export default function DashboardRadial({ title, subtitle, label, min, max, numb
             </CardHeader>
             <CardContent className="flex flex-1 items-center justify-center pb-0">
                 <ChartContainer
-                    config={chartConfig}
                     className="mx-auto aspect-square w-full max-w-[250px] relative translate-y-1/8"
                 >
                     <RadialBarChart
