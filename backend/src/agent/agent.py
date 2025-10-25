@@ -173,3 +173,30 @@ async def run_agent(prompt: str) -> List:
     result = await agent.ainvoke({"messages": input})
 
     return result["messages"][-1]
+
+async def langgraph_agent(query):
+
+    if isinstance(query, dict) and "input" in query:
+        query = query["input"]
+        
+    result = await run_agent(query) #type: ignore
+
+    return result
+
+tool: Any = LangchainRegisterTool()
+agent_info = tool.invoke(
+    {
+        "agent_obj": langgraph_agent,
+        "name": "dashboard_agent",
+        "port": 9000,
+        "description": "A dashboard-generating LangGraph agent that fetches data and builds visual crypto insights.",
+        "api_token": os.getenv("AGENTVERSE_KEY"),
+        "mailbox": True,
+    }
+)
+
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    cleanup_uagent("dashboard_agent")
