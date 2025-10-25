@@ -14,6 +14,8 @@ from typing import List, Annotated, TypedDict, Any
 import ftfy
 import asyncio
 
+from uagents_adapter import LangchainRegisterTool, cleanup_uagent
+
 load_dotenv()
 
 class AgentState(TypedDict):
