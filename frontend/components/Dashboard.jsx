@@ -7,7 +7,7 @@ import DashboardTable from "./DashboardTable";
 import Summary from "./Summary";
 import DashboardRadial from "./DashboardRadial";
 import Reccomended from "./Reccomended";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 import { useApi } from "@/lib/api";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -87,7 +87,6 @@ export default function Dashboard({ query }) {
         setReady(false);
         setComponents(undefined);
         setError(false);
-        console.log("here")
 
         makeRequest("chat", {
             method: "POST",
@@ -155,48 +154,52 @@ export default function Dashboard({ query }) {
                 <AnimatePresence mode="wait">
 
                     {
-                        error ? <div className="absolute left-1/2 -translate-x-1/2 top-1/3 text-white">An error occurred. Please try again.</div>
+                        ready ?
+                            <motion.div className="grid grid-flow-row-dense grid-cols-3 gap-10 auto-rows-min auto-flow-dense"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{
+                                    duration: 1,
+                                    ease: "easeInOut"
+                                }}
+                                exit={{
+                                    opacity: 0
+                                }}
+                                key="grid"
+                            >
+                                {
+                                    components.map((item, key) => {
+                                        return <Fragment key={key}>
+                                            {getComponent(item, key)}
+                                        </Fragment>
+                                        })
+                                }
+                            </motion.div>
                             :
-                            ready ?
-                                <motion.div className="grid grid-flow-row-dense grid-cols-3 gap-10 auto-rows-min auto-flow-dense"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    transition={{
-                                        duration: 1,
-                                        ease: "easeInOut"
-                                    }}
-                                    exit={{
-                                        opacity: 0
-                                    }}
-                                    key="components"
-                                >
-                                    {
-                                        components.map((item, key) => (
-                                            getComponent(item, key)
-                                        ))
+                            <motion.div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/4 flex flex-col justify-center items-center" key="waiting"
+                                initial={{
+                                    opacity: 0
+                                }}
+                                animate={{
+                                    opacity: 1
+                                }}
+                                exit={{
+                                    opacity: 0,
+                                    transition: {
+                                        repeat: 0,
+                                        duration: 1
                                     }
-                                </motion.div>
-                                :
-                                <motion.div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/4 flex flex-col justify-center items-center" key="waiting"
-                                    initial={{
-                                        opacity: 0
-                                    }}
-                                    animate={{
-                                        opacity: 1
-                                    }}
-                                    exit={{
-                                        opacity: 0
-                                    }}
-                                    transition={{
-                                        repeat: Infinity,
-                                        duration: 3,
-                                        delay: 1,
-                                        repeatType: "mirror",
-                                        ease: "easeOut"
-                                    }}
-                                >
-                                    <img src="eth.png" width={100} height={100} className="relative"></img>
-                                </motion.div>
+                                }}
+                                transition={{
+                                    repeat: Infinity,
+                                    duration: 3,
+                                    delay: 1,
+                                    repeatType: "mirror",
+                                    ease: "easeOut"
+                                }}
+                            >
+                                <img src="eth.png" width={100} height={100} className="relative"></img>
+                            </motion.div>
                     }
                 </AnimatePresence>
             </div>
