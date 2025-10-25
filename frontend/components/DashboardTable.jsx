@@ -28,8 +28,8 @@ export default function DashboardTable({ title, subtitle, headers, data }) {
                     </CardDescription>
                 </div>
             </CardHeader>
-            <CardContent className="dark-scrollbar text-[2px]">
-                <Table className="text-xs">
+            <CardContent className="text-[2px]  dark-scrollbar">
+                <Table className="text-xs flex-1">
                     <TableHeader>
                         <TableRow>
                             <TableHead className="text-center"></TableHead>
@@ -45,7 +45,7 @@ export default function DashboardTable({ title, subtitle, headers, data }) {
                             <TableRow key={`row-${key}`}>
                                 {
                                     item.map((val, key) => {
-                                        return <TableCell key={`row-cell-${key}`} className={cn("font-medium", key === 0 ? "text-white text-left" : "text-white/50 text-center")}>{val}</TableCell>
+                                        return <TableCell key={`row-cell-${key} `} className={cn("font-medium", key === 0 ? "text-white text-left" : "text-white/50 text-center")}>{val}</TableCell>
                                     })
                                 }
                             </TableRow>

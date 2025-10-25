@@ -20,15 +20,13 @@ export default function Reccomended({ reccomended }) {
             <CardContent className="overflow-y-scroll h-full dark-scrollbar">
                 <div className="flex items-center justify-center flex-col px-5 gap-2 pt-3">
                     {
-                        reccomended.map((item, key) => (
+                        reccomended.slice(0, 5).map((item, key) => (
                             <div key={key}>
                                 <div className="w-full h-fit mb-5">
-                                    <p className="text-4xl">Hello hello hello hello</p>
-                                    <a href="https://www.google.com" target="_blank" className="text-white/50">https://www.google.com</a>
+                                    <p className="text-4xl">{item.title}</p>
+                                    <a href={item.url} target="_blank" className="text-white/50">{item.url.length > 30 ? `${item.url.slice(0, 30)}...` : item.url}</a>
                                     {
-                                        item.image ? <img src={item.image} className="w-[800px] mt-4 rounded-2xl border-2 border-white/70"/>
-                                            :
-                                        <p className="w-[500px] mt-4">{item.body}</p>
+                                        <p className="w-[600px] mt-4">{item.content.length > 350 ? `${item.content.slice(0, 350)}...` : item.content} </p>
                                     }
                                 </div>
                                 <div className="w-full h-[2px] bg-white mt-4 mb-2"/>

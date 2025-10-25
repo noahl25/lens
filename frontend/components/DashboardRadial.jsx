@@ -33,20 +33,11 @@ const chartConfig = {
     },
 } 
 
-export default function DashboardRadial({ title, subtitle, label, min, max, number, rightLabel, leftLabel }) {
-    
-    const config = {
-        fear: {
-            label: "Fear",
-        }, 
-        greed: {
-            label: "Greed",
-        }
+export default function DashboardRadial({ title, subtitle, label, min, max, number, rightLabel, leftLabel, labelColor = "red" }) {
 
-    }
-
-    const pct = (number - min) / (max - min) * 100;
-    const chartData = [{ [leftLabel]: pct, [rightLabel]: 100 - pct }]
+    let pct = (number - min) / (max - min) * 100;
+    pct = pct.toFixed(2);
+    const chartData = [{ [leftLabel]: Math.round(pct), [rightLabel]: Math.round(100 - pct) }]
 
     return (
         <Card className="pt-0 bg-black text-white border-white/20 border-2 col-span-1 row-span-1">
@@ -78,7 +69,7 @@ export default function DashboardRadial({ title, subtitle, label, min, max, numb
                                 content={({ viewBox }) => {
                                     if (viewBox && "cx" in viewBox && "cy" in viewBox) {
                                         return (
-                                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" fill="white">
+                                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" fill={labelColor === "red" ? "rgba(128, 0, 0, 1)" : "#007d00ff"}>
                                                 <tspan
                                                     x={viewBox.cx}
                                                     y={(viewBox.cy || 0) - 16}

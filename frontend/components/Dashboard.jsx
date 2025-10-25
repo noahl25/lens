@@ -9,17 +9,9 @@ import DashboardTable from "./DashboardTable";
 import Summary from "./Summary";
 import DashboardRadial from "./DashboardRadial";
 import Reccomended from "./Reccomended";
+import DashboardComponents from "./DashboardComponents";
 
 export default function Dashboard({ query }) {
-
-    const table = require("./table.json")
-
-    const chartData = [
-        { date: "August 10", line: 100 },
-        { date: "August 11", line: 200 },
-        { date: "August 12", line: 300 }
-        
-    ]
 
     return (
         <div className="w-full h-full pb-10 overflow-x-hidden">
@@ -38,18 +30,7 @@ export default function Dashboard({ query }) {
                     </div>
                 </div>
                 <div className="grid grid-flow-row-dense grid-cols-3 gap-10 auto-rows-min auto-flow-dense">
-                    <LineGraph data={chartData} title={"Hello!"} subtitle={"Hello world!"}/>
-                    <DashboardTable title={table.title} subtitle={table.subtitle} headers={table.headers} data={table.data}/>
-                    <DashboardRadial title={"Hello"} subtitle={"Hello world"} label={"Sentiment"} min={-1} max={1} number={-0.25} leftLabel={"Positive"} rightLabel={"Negative"}/>
-                    <Summary title={"Hello"} subtitle={"Hello world"} text={"Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum. Lorem impsum."}/>
-                    <Reccomended reccomended={[
-                        {
-                            image: "https://www.purina.com/sites/default/files/styles/2x1_small/public/2024-08/eco_126_puppyteething.jpg?itok=rv6wURzz"
-                        },
-                        {
-                            image: "https://www.purina.com/sites/default/files/styles/2x1_small/public/2024-08/eco_126_puppyteething.jpg?itok=rv6wURzz"
-                        },
-                    ]}/>
+                    <DashboardComponents/>
                 </div>
             </div>
         </div>
