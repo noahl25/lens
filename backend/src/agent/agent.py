@@ -11,6 +11,7 @@ from dashboard import dashboard
 
 from operator import add as add_messages
 from typing import List, Annotated, TypedDict, Any
+import ftfy
 
 load_dotenv()
 
@@ -78,10 +79,9 @@ def has_tools(state: AgentState):
 
 
 def create_dashboard(state: AgentState):
-
-    print(json.dumps(state, indent=2, default=str, ensure_ascii=False))
     state["messages"][-1]["content"] = "SUMMARY: " + state["messages"][-1]["content"].message.content
-    cleaned_summary = state["messages"][-1]["content"].encode('utf-8').decode('unicode_escape').strip("[]").replace("â€$", "-").replace("â€", "-").replace("â", "-").replace("\\", "")
+    print(json.dumps(state["messages"], indent=2))
+    cleaned_summary = ftfy.fix_encoding(state["messages"][-1]["content"])
     response = asi1.asi_request(
         [
             {
@@ -94,9 +94,7 @@ def create_dashboard(state: AgentState):
             }
         ]
     ) # In case the model hallucinates initially.
-    cleaned_summary = response.choices[0].message.content.encode('utf-8').decode('unicode_escape').strip("[]").replace("â€$", "-").replace("â€", "-").replace("â", "-").replace("\\", "") #type: ignore
-
-    #print(cleaned_summary)
+    cleaned_summary = ftfy.fix_encoding(response.choices[0].message.content) #type: ignore
 
     final_dashboard = {}
     final_dashboard["summary"] = cleaned_summary
@@ -111,10 +109,28 @@ def create_dashboard(state: AgentState):
                     dashboard.create_graph(data, args)
                 case "coin_general_data":
                     dashboard.create_table(data, args)
+                case "fear_and_greed_index":
+                    dashboard.create_radial(data, args, "Fear and Greed")
+                case "social_sentiment_tool":
+                    dashboard.create_radial(data, args, "Social Sentiment")
+                case "web_search":
+                    print("here")
+                    dashboard.create_recomended(data)
                 case _:
-                    raise RuntimeError("No tool name match.")
+                    print(f"no relevant dashboard component for {func}.")
 
     dashboard.finalize_table()
+    dashboard.finalize_recommended()
+    dashboard.add_summary(cleaned_summary)
+    dashboard.sort_dashboard()
+
+    #print(json.dumps(dashboard.final_dashboard))
+    return {
+        "messages": [
+            dashboard.final_dashboard
+        ]
+    }
+    
 
 graph = StateGraph(AgentState)
 def create_agent():
@@ -132,21 +148,23 @@ def create_agent():
     
 create_agent()
 
-prompt = "bitcoin and ethereum metrics now"
+def run_agent(prompt: str) -> List:
 
-vars = metta.extract_type_tone_category(prompt)
-metta_query = metta.get_prompt(vars["type"], vars["tone"], vars["category"])
+    vars = metta.extract_type_tone_category(prompt)
+    metta_query = metta.get_prompt(vars["type"], vars["tone"], vars["category"])
 
-input = [
-    {
-        "role": "system",
-        "content": AGENT_PROMPT + metta_query[0]
-    },
-    {
-        "role": "user",
-        "content": prompt
-    }
-]
+    input = [
+        {
+            "role": "system",
+            "content": AGENT_PROMPT + metta_query[0]
+        },
+        {
+            "role": "user",
+            "content": prompt
+        }
+    ]
 
-agent = graph.compile()
-agent.invoke({"messages": input})
+    agent = graph.compile()
+    result = agent.invoke({"messages": input})
+
+    return result["messages"][-1]

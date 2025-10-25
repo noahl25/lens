@@ -9,6 +9,8 @@ metta = MeTTa()
 def initialize_knowledge_graph():
 
     # Type, tone, category -> summary prompt
+    # Knowledge base will grow as new keywords are encountered. Stored in knowledge.metta.
+    
     metta.space().add_atom(E(S("data"), S("professional"), S("general"), ValueAtom("Summarize professionally, focusing on market trends, prices, volume, and ecosystem implications.")))
     metta.space().add_atom(E(S("data"), S("casual"), S("general"), ValueAtom("Give an easy-to-understand overview of market trends, coin prices, and important news for beginners.")))
     metta.space().add_atom(E(S("data"), S("professional"), S("numerical"), ValueAtom("Provide detailed numerical analysis of prices, volumes, market cap, and historical trends.")))
@@ -43,7 +45,7 @@ def add_to_knowlegde_graph(type: str, tone: str, category: str, prompt: str):
     atom = E(S(type), S(tone), S(category), ValueAtom(prompt))
     metta.space().add_atom(atom)
     with open("knowledge.metta", "a") as file:
-        file.write(str(atom))
+        file.write(str(atom) + "\n")
 
 def generate_new_atom(type: str, tone: str, category: str):
 

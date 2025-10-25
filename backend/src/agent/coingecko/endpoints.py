@@ -37,3 +37,4 @@ def historical_data(coin_id: Annotated[str, "Fully qualified name of coin. E.g. 
         response = {metric: response[metric]}
 
     return response
+

@@ -16,6 +16,7 @@ from tavily import TavilyClient
 import aiohttp
 import asyncio
 from collections import defaultdict
+import ftfy
 
 from prompts import IMAGE_SENTIMENT_PROMPT
 
@@ -73,7 +74,7 @@ def fear_and_greed_index(limit: Annotated[int, "Days in past of greed/fear to ge
 
     return [x for x in response.json()["data"]]
 
-async def analyze_image_sentiment(session, client, post, index = 0) -> Dict:
+async def analyze_image_sentiment(session, client, post, index=0) -> Dict:
 
     image_url = post["url"]
 
@@ -104,7 +105,6 @@ async def analyze_image_sentiment(session, client, post, index = 0) -> Dict:
         "image_description": result["short_description"],
         "date": post["date"],
         "datestr": post["datestr"],
-        "post_link": post.shortlink,
         "index": index
     }
 
@@ -140,7 +140,6 @@ async def get_top_reddit(time_period: str, coin: str = "", image_descriptions: b
                 "date": float(post.created_utc),
                 "datestr": datetime.fromtimestamp(post.created_utc).strftime("%m/%d/%Y"),
                 "type": "text",
-                "post_link": post.shortlink
             })
         elif post.url.endswith((".jpg", ".png", ".jpeg")):
             posts.append({
@@ -149,7 +148,7 @@ async def get_top_reddit(time_period: str, coin: str = "", image_descriptions: b
                 "date": float(post.created_utc),
                 "datestr": datetime.fromtimestamp(post.created_utc).strftime("%m/%d/%Y"),
                 "type": "image",
-                "post_link": post.shortlink
+                "image_url": post.preview['images'][0]['source']['url']
             })
         else:
             posts.append({
@@ -158,7 +157,6 @@ async def get_top_reddit(time_period: str, coin: str = "", image_descriptions: b
                 "date": float(post.created_utc),
                 "datestr": datetime.fromtimestamp(post.created_utc).strftime("%m/%d/%Y"),
                 "type": "title",
-                "post_link": post.shortlink
             })
 
     if image_descriptions:
@@ -187,27 +185,26 @@ async def social_sentiment(time_period: str, coin: str = ""):
 
     results = []
     image_tasks = []
+    image_results = None
     async with aiohttp.ClientSession() as session:
-        try:
-            for post in posts:
-                if post["type"] == "text" or post["type"] == "title":
-                    score = analyzer.polarity_scores(f"{post['title']} {post['body']}")
-                    results.append({
-                        "sentiment_score": score["compound"],
-                        "date": post["date"],
-                        "datestr": post["datestr"],
-                        "body": post["body"],
-                        "post_link": post["post_link"]
-                    })
-                elif post["type"] == "image":
-                    image_tasks.append(
-                        analyze_image_sentiment(session, client, post)
-                    )
-            image_results = await asyncio.gather(*image_tasks)
-        except Exception as e:
-            print(e)
+        for post in posts:
+            if post["type"] == "text" or post["type"] == "title":
+                score = analyzer.polarity_scores(f"{post['title']} {post['body']}")
+                results.append({
+                    "sentiment_score": score["compound"],
+                    "date": post["date"],
+                    "datestr": post["datestr"],
+                    "body": post["body"] if post["body"] else post["title"],
+                    "type": post["type"],
+                })
+            elif post["type"] == "image":
+                image_tasks.append(
+                    analyze_image_sentiment(session, client, post)
+                )
+        image_results = await asyncio.gather(*image_tasks)
 
-    results.extend(image_results)
+    if image_results:
+        results.extend(image_results)
     results = sorted(results, key=lambda item: item["date"])
 
     daily_scores = defaultdict(list)
@@ -247,7 +244,7 @@ def web_search(time_period: Annotated[str, "Time period to search. Must be \"day
     tavily_client = TavilyClient(api_key=os.getenv("TAVILY_KEY"))
     response = tavily_client.search(query, topic="news", time_range=cast(Literal['day', 'week', 'month', 'year'], time_period), max_results=10)
     for result in response["results"]:
-        result["post_link"] = result.pop("url")
+        result["content"] = ftfy.fix_encoding(result["content"]).replace("\n", "")
     return response["results"]
 
 import coingecko.endpoints
@@ -265,6 +262,6 @@ TOOLS_FORMATTED = [
     create_tool_schema(func) for func in TOOLS_REF
 ]
 
-TOOLS_DICT = {func.__name__: func for func in TOOLS_REF}
-
-print(TOOLS_FORMATTED)
+TOOLS_DICT = {
+    func.__name__: func for func in TOOLS_REF
+}

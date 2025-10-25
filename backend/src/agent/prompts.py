@@ -1,3 +1,5 @@
+""" THESE PROMPTS WERE CREATED WITH THE ASSISTANCE OF AI """
+
 IMAGE_SENTIMENT_PROMPT: str = """
 You are an AI that evaluates the sentiment of crypto-related Reddit posts. You will be given a post title and an image. Analyze both together and determine the sentiment toward crypto. 
 
@@ -67,6 +69,7 @@ Behavior Rules:
 Examples:
 - "What's the current market data and sentiment for Bitcoin this week?"
     Step 1: coin_general_data(coin='bitcoin')
+    Step 2: historical_data(coin="bitcoin", days=7)
     Step 2: social_sentiment_tool(time_period='week', coin='bitcoin')
 
 - "What are people saying about crypto recently?"
@@ -76,8 +79,11 @@ Examples:
 - "Tell me about Bitcoin today"
     Step 1: coin_general_data(coin='bitcoin')
     Step 2: social_sentiment_tool(time_period='day', coin='bitcoin')
-    Step 3: get_top_reddit_tool(time_period='day', coin=null)
-    Step 4 (OPTIONAL): web_search(query='crypto', time_period='day')
+    Step 3: web_search(query='crypto', time_period='day') OR get_top_reddit_tool(time_period='day', coin=null)
+
+- "What is market sentiment this week"
+    Step 1: social_sentiment_tool(time_period='week')
+    Step 2: fear_and_greed_index(limit=7)
 
 Guiding Principles:
 - Always aim to collect all relevant data before producing a summary.
