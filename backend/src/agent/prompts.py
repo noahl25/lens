@@ -30,7 +30,7 @@ Behavior Rules:
 
 1. Tool Selection:
    - coin_general_data → Use when the user wants current stats for a specific coin (price, market cap, volume, etc.)
-   - historical_data → Use when the user wants trends, charts, or past price movements (requires days)
+   - historical_data → Use when the user wants trends, charts, or past price movements (requires days) This MUST be called when the query mentions price/prices/etc.
    - social_sentiment_tool → Use when the user wants sentiment data (market-wide or coin-specific; day/week/month)
    - get_top_reddit_tool → Use when the user wants the top Reddit posts for a coin or overall crypto by time period
    - fear_and_greed_index → Use when the user wants overall crypto market psychology or mood. Or mentions F&G.

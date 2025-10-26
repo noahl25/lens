@@ -25,7 +25,10 @@ export default function Dashboard({ query }) {
         for (let i = 0; i < currentIndex; i++) {
             const c = components[i];
             const cols = c.cols || 1;
-            usedCols += cols;
+            if (cols == 2 && i > 0 && components[i - 1].cols == 2 && totalCols % usedCols != 0)
+                usedCols += 3;
+            else
+                usedCols += cols;
         }
 
         const remaining = usedCols % totalCols;
@@ -108,7 +111,7 @@ export default function Dashboard({ query }) {
     const onSubmit = () => {
 
         setReady(false);
-        setComponents(undefined);
+        setComponents(null);
         setError(false);
 
         makeRequest("chat", {
@@ -117,13 +120,11 @@ export default function Dashboard({ query }) {
                 "request": inputRef.current.value
             })
         }).then((result) => {
-            if ("result" in result) {
-                if (!components) {
-                    setReady(true);
-                    setComponents(result.result);
 
-                    console.log(result.result)
-                }
+            if ("result" in result) {
+                setReady(true);
+                setComponents(result.result);
+                
             }
             else {
                 setError(true);
@@ -146,8 +147,6 @@ export default function Dashboard({ query }) {
                     if (!components) {
                         setReady(true);
                         setComponents(result.result);
-
-                        console.log(result.result)
                     }
                 }
                 else {
