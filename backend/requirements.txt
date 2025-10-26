@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+python-dotenv
+requests
+aiohttp
+asyncpraw
+vaderSentiment
+ftfy
+openai
+pydantic
+langchain-core
+langgraph
+tavily-python
+google-genai
+hyperon
+uagents-adapter
+uagents

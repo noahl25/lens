@@ -8,6 +8,7 @@ from .prompts import AGENT_PROMPT, SUMMARY_PROMPT
 import json
 from .metta import metta
 from .dashboard import dashboard
+import os
 
 from operator import add as add_messages
 from typing import List, Annotated, TypedDict, Any
@@ -185,20 +186,21 @@ async def langgraph_agent(query):
 
     return result
 
-tool: Any = LangchainRegisterTool()
-agent_info = tool.invoke(
-    {
-        "agent_obj": langgraph_agent,
-        "name": "dashboard_agent",
-        "port": 9000,
-        "description": "A dashboard-generating LangGraph agent that fetches data and builds visual crypto insights.",
-        "api_token": os.getenv("AGENTVERSE_KEY"),
-        "mailbox": True,
-    }
-)
+if os.getenv("AGENTVERSE") == "deploy":
+    tool: Any = LangchainRegisterTool()
+    agent_info = tool.invoke(
+        {
+            "agent_obj": langgraph_agent,
+            "name": "dashboard_agent",
+            "port": 9000,
+            "description": "A dashboard-generating LangGraph agent that fetches data and builds visual crypto insights.",
+            "api_token": os.getenv("AGENTVERSE_KEY"),
+            "mailbox": True,
+        }
+    )
 
-try:
-    while True:
-        time.sleep(1)
-except KeyboardInterrupt:
-    cleanup_uagent("dashboard_agent")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        cleanup_uagent("dashboard_agent")
