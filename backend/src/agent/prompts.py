@@ -85,11 +85,12 @@ Examples:
 - "What is market sentiment this week"
     Step 1: social_sentiment_tool(time_period='week')
     Step 2: fear_and_greed_index(limit=7)
-   
+    Step 3: web_search(query='crypto', time_period='week')
+
 - "Bitcoin metrics/data today"
    Step 1: coin_general_data(coin='bitcoin')
    Step 2: historical_data(coin='bitcoin', days=1)
-
+   
 Guiding Principles:
 - Always aim to collect all relevant data before producing a summary.
 - Broad queries should trigger multiple tool calls to provide a comprehensive view.

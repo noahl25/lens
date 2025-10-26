@@ -27,7 +27,7 @@ export default function Home() {
 						key="query"
 						exit={{ opacity: 0 }}
 						transition={{ duration: 0.8 }}
-						className="w-screen h-screen flex justify-center items-center bg-black relative"
+						className="w-screen h-screen flex justify-center items-center bg-black relative overflow-y-hidden"
 					>
 						<Threads
 							amplitude={1}
