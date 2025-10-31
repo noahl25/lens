@@ -1,6 +1,6 @@
 # Lens
 
-Project made for the 2025 ETHGLobal Online hackathon. 
+Project made for the 2025 ETHGLobal Online hackathon. [Showcase](ethglobal.com/showcase/lens-gf2z2)
 
 Run the frontend with:
 ```
